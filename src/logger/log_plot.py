@@ -9,6 +9,7 @@ if __name__ == '__main__':
     label = temp[0,:].astype(np.str)
     data = temp[1:,:].astype(np.float)
     timestamp = (data[:,0]-data[0,0])/1000000000
+    print 'data length:',len(data)
     print timestamp
     while 1:    
         for i in range(len(label)): 

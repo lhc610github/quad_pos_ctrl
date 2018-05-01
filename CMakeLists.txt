@@ -158,7 +158,8 @@ add_library(quad_pos_ctrl
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/quad_pos_ctrl_node.cpp)
 add_executable(quad_pos_ctrl_node src/quad_pos_ctrl_node.cpp)
-add_executable(test_pub_node src/test_pub_node.cpp)
+add_executable(test_pub_node test/test_pub_node.cpp)
+add_executable(test_takeoff_node test/test_takeoff_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -184,6 +185,9 @@ target_link_libraries(test_pub_node
   ${catkin_LIBRARIES}
 )
 
+target_link_libraries(test_takeoff_node
+  ${catkin_LIBRARIES}
+)
 #############
 ## Install ##
 #############
