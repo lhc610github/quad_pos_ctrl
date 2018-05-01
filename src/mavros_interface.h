@@ -1,0 +1,134 @@
+#ifndef MAVROS_INTERFACE_H_
+#define MAVROS_INTERFACE_H_
+
+#include "ros/ros.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <iostream>
+
+#include <mavros_msgs/AttitudeTarget.h>
+#include <mavros_msgs/State.h>
+#include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/CommandBool.h>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
+class Mavros_Interface {
+    public:
+        Mavros_Interface(const ros::NodeHandle & nh, const int &id):
+        _nh(nh) {
+            _state.reset();
+            std::string base_name = "/mavros";
+            char id_str[10];
+            sprintf(id_str, "%d", id);
+            base_name += id_str;
+
+            std::string att_target_pub_name;
+            att_target_pub_name = base_name + "/setpoint_raw/target_attitude";
+            att_target_pub = _nh.advertise<mavros_msgs::AttitudeTarget>(att_target_pub_name.c_str(),10);
+
+            std::string state_sub_name;
+            state_sub_name = base_name + "/state";
+            state_sub = _nh.subscribe(state_sub_name.c_str(),10,&Mavros_Interface::state_cb,this);
+
+            std::string set_mode_s_name;
+            set_mode_s_name = base_name + "/set_mode";
+            set_mode_client = _nh.serviceClient<mavros_msgs::SetMode>(set_mode_s_name.c_str());
+            
+            std::string arm_disarm_s_name;
+            arm_disarm_s_name = base_name + "/cmd/arming";
+            arm_disarm_client = _nh.serviceClient<mavros_msgs::CommandBool>(arm_disarm_s_name.c_str());
+        }
+
+        ~Mavros_Interface() {}
+
+        typedef struct mavros_state_t {
+            ros::Time header;
+            bool has_armed;
+            bool offboard_enabled;
+            void reset () {
+                has_armed = false;
+                offboard_enabled = false;
+            }
+            mavros_state_t() {
+                reset();
+            }
+        }state_s;
+
+        void state_cb(const mavros_msgs::State & state_data) {
+            mavros_msgs::State temp_data = state_data;
+            _state.header = state_data.header.stamp;
+            _state.has_armed = state_data.armed;
+            if (state_data.mode == "OFFBOARD") {
+                _state.offboard_enabled = true;
+            } else {
+                _state.offboard_enabled = false;
+            }
+        }
+
+        void get_status(bool & arm_state, bool & offboard_enabled, ros::Time & timestamp) {
+            arm_state = _state.has_armed;
+            offboard_enabled = _state.offboard_enabled;
+            timestamp = _state.header;
+        }
+
+        bool set_arm_and_offboard() {
+            if(!_state.offboard_enabled) {
+                mavros_msgs::SetMode set_mode_srv;
+                set_mode_srv.request.base_mode = 0;
+                set_mode_srv.request.custom_mode = "OFFBOARD";
+                if (!set_mode_client.call(set_mode_srv)) {
+                    return false;
+                }
+                ROS_INFO("switch to OFFBOARD mode");
+                sleep(5);
+            }
+
+            if(_state.offboard_enabled) {
+                mavros_msgs::CommandBool arm_srv;
+                arm_srv.request.value = true;
+                if (!arm_disarm_client.call(arm_srv)) {
+                    return false;
+                }
+                ROS_INFO("vehicle ARMED");
+                return true;
+            } else {
+                ROS_INFO("not in OFFBOARD mode");
+                return false;
+            }
+        }
+
+        bool set_disarm() {
+                mavros_msgs::CommandBool arm_srv;
+                arm_srv.request.value = false;
+                if (!arm_disarm_client.call(arm_srv)) {
+                    return false;
+                }
+                ROS_INFO("vehicle DISARMED");
+                return true;
+        }
+
+        void pub_att_thrust_cmd(const Eigen::Quaterniond &q_d,const double & thrust_d) {
+            mavros_msgs::AttitudeTarget at_cmd;
+            at_cmd.header.stamp = ros::Time::now();
+            at_cmd.type_mask = at_cmd.IGNORE_ROLL_RATE | at_cmd.IGNORE_PITCH_RATE | at_cmd.IGNORE_YAW_RATE;
+            at_cmd.thrust = (float)thrust_d;
+            at_cmd.orientation.w = q_d.w();
+            at_cmd.orientation.x = q_d.x();
+            at_cmd.orientation.y = q_d.y();
+            at_cmd.orientation.z = q_d.z();
+            att_target_pub.publish(at_cmd);
+        }
+
+    private:
+        ros::NodeHandle _nh;
+        ros::Publisher att_target_pub;
+        ros::Subscriber state_sub;
+        ros::ServiceClient set_mode_client;
+        ros::ServiceClient arm_disarm_client;
+        state_s _state;
+};
+
+#endif
