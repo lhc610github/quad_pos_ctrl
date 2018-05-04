@@ -21,7 +21,7 @@ if __name__ == '__main__':
         if wtp == 'q':
             break
         for i in range(len(wtp)):
-            plt.plot(timestamp, data[:,wtp[i]], linewidth = 3.5, linestyle='-', label=label[wtp[i]])
+            plt.plot(timestamp, data[:,wtp[i]], linewidth = 2.5, linestyle='-',marker='.', label=label[wtp[i]])
         plt.xlabel('t')
         plt.legend()
         plt.show()

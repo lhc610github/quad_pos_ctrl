@@ -28,10 +28,10 @@ void * start_controller_loop_thread(void *args);
 class Controller : public State_Estimate {
     public:
 
-        Controller (const ros::NodeHandle &nh, int rigid_id):
-        State_Estimate(nh, rigid_id),
-        mavros_interface(nh, rigid_id),
-        nh_(nh) {
+        Controller (int rigid_id):
+        State_Estimate(rigid_id),
+        mavros_interface(rigid_id),
+        nh_("~controller") {
             already_running = false;
             pthread_mutex_init(&ctrl_mutex, NULL);
             arm_status.reset();
@@ -124,6 +124,8 @@ class Controller : public State_Estimate {
         arm_s arm_status;
         ros::ServiceServer arm_srv;
         ros::ServiceServer hoverpos_srv;
+
+        ros::Time last_ctrol_timestamp;
 
         Mavros_Interface mavros_interface;
         

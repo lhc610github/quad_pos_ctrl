@@ -16,10 +16,22 @@ void Controller::controller_loop() {
             ctrl_core.reset();
         }
         ctrl_rate.sleep();
+        //usleep(10000);
     }
 }
 
 void Controller::one_step() {
+        /*check arm status*/
+        bool arm_state = false;
+        bool ofb_enable = false;
+        ros::Time arm_state_timestamp;
+        mavros_interface.get_status(arm_state,ofb_enable,arm_state_timestamp);
+
+        pthread_mutex_lock(&ctrl_mutex);
+        arm_status.header = ros::Time::now();
+        arm_status.armed = (arm_state && ofb_enable);
+        pthread_mutex_unlock(&ctrl_mutex);
+
         pthread_mutex_lock(&ctrl_mutex);
         ctrl_core.set_ref(status_ref);
         bool has_armed = arm_status.armed;
@@ -29,17 +41,9 @@ void Controller::one_step() {
             ctrl_core.run(get_state(), ctrl_res);
             //std::cout << ctrl_res.res.transpose() << std::endl;
             U_s U = cal_Rd_thrust(ctrl_res);
-            mavros_interface.pub_att_thrust_cmd(U.q_d,U.U1);
-
-            /*check arm status*/
-            bool arm_state = false;
-            bool ofb_enable = false;
-            ros::Time arm_state_timestamp;
-            mavros_interface.get_status(arm_state,ofb_enable,arm_state_timestamp);
-            if (!(arm_state && ofb_enable && (ros::Time::now() - arm_state_timestamp > ros::Duration(5.0)))) {
-                pthread_mutex_lock(&ctrl_mutex);
-                arm_status.armed = false;
-                pthread_mutex_unlock(&ctrl_mutex);
+            if ((ros::Time::now() - last_ctrol_timestamp) > ros::Duration(0.019)) {
+                mavros_interface.pub_att_thrust_cmd(U.q_d,U.U1);
+                last_ctrol_timestamp = ros::Time::now();
             }
 
 #ifdef USE_LOGGER
@@ -116,17 +120,14 @@ Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &
 }
 
 void Controller::arm_disarm_vehicle(const bool & arm) {
-    pthread_mutex_lock(&ctrl_mutex);
-    arm_status.header = ros::Time::now();
-    arm_status.armed = arm;
     if (arm) {
         ROS_INFO("vehicle will be armed!");
+#ifdef USE_LOGGER
+            start_logger(ros::Time::now());
+#endif
         if (mavros_interface.set_arm_and_offboard()) {
             ROS_INFO("done!");
         }
-#ifdef USE_LOGGER
-        start_logger(arm_status.header);
-#endif
     } else {
         ROS_INFO("vehicle will be disarmed!");
         if (mavros_interface.set_disarm()) {
@@ -138,7 +139,6 @@ void Controller::arm_disarm_vehicle(const bool & arm) {
         }
 #endif
     }
-    pthread_mutex_unlock(&ctrl_mutex);
 }
 
 void Controller::set_hover_pos(const Eigen::Vector3d & pos, const float & yaw) {

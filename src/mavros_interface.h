@@ -17,8 +17,8 @@
 
 class Mavros_Interface {
     public:
-        Mavros_Interface(const ros::NodeHandle & nh, const int &id):
-        _nh(nh) {
+        Mavros_Interface(const int &id):
+        _nh("~cmd") {
             _state.reset();
             std::string base_name = "/mavros";
             char id_str[10];
@@ -26,7 +26,7 @@ class Mavros_Interface {
             base_name += id_str;
 
             std::string att_target_pub_name;
-            att_target_pub_name = base_name + "/setpoint_raw/target_attitude";
+            att_target_pub_name = base_name + "/setpoint_raw/attitude";
             att_target_pub = _nh.advertise<mavros_msgs::AttitudeTarget>(att_target_pub_name.c_str(),10);
 
             std::string state_sub_name;
@@ -75,7 +75,7 @@ class Mavros_Interface {
         }
 
         bool set_arm_and_offboard() {
-            if(!_state.offboard_enabled) {
+            /*if(!_state.offboard_enabled) {
                 mavros_msgs::SetMode set_mode_srv;
                 set_mode_srv.request.base_mode = 0;
                 set_mode_srv.request.custom_mode = "OFFBOARD";
@@ -83,31 +83,60 @@ class Mavros_Interface {
                     return false;
                 }
                 ROS_INFO("switch to OFFBOARD mode");
-                sleep(5);
             }
 
+            sleep(5);*/
+            ros::Rate _ofb_check_rate(0.3);
+            while (!_state.offboard_enabled || !_state.has_armed ) {
+                if(_state.offboard_enabled) {
+                    ros::Rate _arm_check_rate(0.3);
+                    while (!_state.has_armed) {
+                        mavros_msgs::CommandBool arm_srv;
+                        arm_srv.request.value = true;
+                        if (arm_disarm_client.call(arm_srv)) {
+                            ROS_INFO("vehicle ARMED");
+                        }
+                        _arm_check_rate.sleep();
+                    }
+                } else {
+                    ROS_INFO("not in OFFBOARD mode");
+                    mavros_msgs::SetMode set_mode_srv;
+                    set_mode_srv.request.base_mode = 0;
+                    set_mode_srv.request.custom_mode = "OFFBOARD";
+                    if (!set_mode_client.call(set_mode_srv)) {
+                        return false;
+                    }
+                    ROS_INFO("switch to OFFBOARD mode");
+                    _ofb_check_rate.sleep();
+                }
+            }
+            return true;
+        }
+
+        /* void set_arm(const ros::TimerEvent& event) {
             if(_state.offboard_enabled) {
                 mavros_msgs::CommandBool arm_srv;
                 arm_srv.request.value = true;
-                if (!arm_disarm_client.call(arm_srv)) {
-                    return false;
+                if (arm_disarm_client.call(arm_srv)) {
+                    ROS_INFO("vehicle ARMED");
                 }
-                ROS_INFO("vehicle ARMED");
-                return true;
             } else {
                 ROS_INFO("not in OFFBOARD mode");
-                return false;
             }
-        }
+        } */
 
         bool set_disarm() {
+            ros::Rate _arm_check_rate(0.3);
+            while(_state.has_armed) {
                 mavros_msgs::CommandBool arm_srv;
                 arm_srv.request.value = false;
                 if (!arm_disarm_client.call(arm_srv)) {
                     return false;
                 }
                 ROS_INFO("vehicle DISARMED");
-                return true;
+                _arm_check_rate.sleep();
+            }
+            return true;
         }
 
         void pub_att_thrust_cmd(const Eigen::Quaterniond &q_d,const double & thrust_d) {
@@ -128,6 +157,7 @@ class Mavros_Interface {
         ros::Subscriber state_sub;
         ros::ServiceClient set_mode_client;
         ros::ServiceClient arm_disarm_client;
+        //ros::Timer arm_timer;
         state_s _state;
 };
 

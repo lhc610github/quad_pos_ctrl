@@ -23,8 +23,8 @@ class PID_ctrl {
 
         PID_ctrl():
         P_int(110.0f),
-        V_diff(50.0f),
-        V_diff2(50.0f) {
+        V_diff(50.0f,25.0f),
+        V_diff2(50.0f,25.0f) {
             P_int.reset();
             V_diff.reset();
             V_diff2.reset();
@@ -44,10 +44,10 @@ class PID_ctrl {
         /* ******************************************************* */
         /*                single state ctrl param                  */
         /* ------------------------------------------------------- */
-            single_state_ctrl_param.P_i << 0.6f, 0.6f, 0.6f;
-            single_state_ctrl_param.P_p << 1.2f, 1.2f, 1.2f;
+            single_state_ctrl_param.P_i << 0.8f, 0.8f, 0.8f;
+            single_state_ctrl_param.P_p << 1.5f, 1.5f, 1.5f;
             single_state_ctrl_param.V_p << 4.0f, 4.0f, 6.0f;
-            single_state_ctrl_param.V_d << 0.4f, 0.4f, 0.04f;
+            single_state_ctrl_param.V_d << 0.01f, 0.01f, 0.02f;
         /* ------------------------------------------------------- */
         /* ******************************************************* */
 
@@ -55,9 +55,9 @@ class PID_ctrl {
         /*               limit param for controller                */
         /* ------------------------------------------------------- */
             ctrl_limit.vel_xy_limit = 1.0f;
-            ctrl_limit.vel_z_limit = 0.5f;
+            ctrl_limit.vel_z_limit = 1.0f;
             ctrl_limit.acc_xy_limit = 5.0f;
-            ctrl_limit.acc_z_limit = 5.0f;
+            ctrl_limit.acc_z_limit = 8.0f;
         /* ------------------------------------------------------- */
         /* ******************************************************* */
         }
@@ -272,9 +272,9 @@ class PID_ctrl {
                 res = single_state_ctrl_param.V_p.array()*e_V.array()
                     + single_state_ctrl_param.V_d.array()*ctrl_V_diff.array()
                     + ctrl_P_int.array();
-                std::cout << "before : " << res.transpose() << std::endl;
+                //std::cout << "before : " << res.transpose() << std::endl;
                 sa_res_s sa_state = limit_func(res,2);
-                std::cout << "after  : " << res.transpose() << std::endl;
+                //std::cout << "after  : " << res.transpose() << std::endl;
                 Eigen::Vector3d int_e;
                 int_e = e_V;
                 if ( sa_state.xy_saturate ) {
@@ -285,7 +285,7 @@ class PID_ctrl {
                     int_e(2) = 0.0f;
                 }
                 P_int.update(single_state_ctrl_param.P_i.array()*int_e.array(),state.header);
-                std::cout << int_e.transpose() << std::endl;
+                //std::cout << int_e.transpose() << std::endl;
                 res = res.array()
                     + g_vector.array();
 #ifdef USE_LOGGER

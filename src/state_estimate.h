@@ -51,11 +51,11 @@ class State_Estimate{
             
         }
         
-        State_Estimate(const ros::NodeHandle &nh, int id) : 
-        nh_(nh),
+        State_Estimate(int id) : 
+        nh_("state_estimate"),
         rigidbody_id_(id),
-        Pos_differ_(120.0f),
-        Vel_differ_(60.0f) {
+        Pos_differ_(120.0f,60.0f),
+        Vel_differ_(60.0f,30.0f) {
             char * base_channel;
             base_channel = new char[sizeof("/mocap_data_rigid")];
             strcpy(base_channel,"/mocap_data_rigid");

@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include <Eigen/Core>
+#include "lowpass_filter.h"
 
 template<class T>
 class Intigrate_State{
@@ -58,7 +59,8 @@ class Diff_State{
 
     public:
     
-        Diff_State(float sample_rate): sample_rate_(sample_rate) {
+        Diff_State(float sample_rate, float lp_rate): sample_rate_(sample_rate),
+        lp(1.0f / lp_rate){
             reset();
         }
 
@@ -82,12 +84,16 @@ class Diff_State{
 
         bool get_diff(ros::Time &timestamp, T& diff) {
                 timestamp = past;
-                diff = diff_status;
+                lp.input(diff_status);
+                lp.getu(diff);
+                //diff = diff_status;
                 return diff_valid;
         }
 
         bool get_diff(T& diff) {
-                diff = diff_status;
+                //diff = diff_status;
+                lp.input(diff_status);
+                lp.getu(diff);
                 return diff_valid;
         }
 
@@ -104,6 +110,7 @@ class Diff_State{
         T diff_status;
         ros::Time past;
         float sample_rate_;
+        Lowpass_Filter<T> lp;
 };
 
 #endif
