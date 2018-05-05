@@ -167,6 +167,23 @@ bool Controller::hover_pos_srv_handle(quad_pos_ctrl::SetHover::Request& req,
     res.res = true;
     return true;
 }
+bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request& req,
+                                        quad_pos_ctrl::SetTakeoffLand::Response& res) {
+    Eigen::Vector3d pos_d; 
+    State_s state_now = get_state();
+    Eigen::Vector3d euler;
+    get_euler_from_q(euler, state_now.att_q);
+    float yaw_d = euler(2);
+    if (req.takeoff) {
+        pos_d << state_now.Pos(0), state_now.Pos(1), req.takeoff_altitude;
+    } else {
+        pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
+    }
+    set_hover_pos(pos_d,yaw_d);
+    arm_disarm_vehicle(req.takeoff);
+    res.res = true;
+    return true;
+}
 
 #ifdef USE_LOGGER
 void Controller::start_logger(const ros::Time & t) {

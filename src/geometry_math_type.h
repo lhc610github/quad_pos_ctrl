@@ -57,6 +57,28 @@ void get_q_from_dcm(Eigen::Quaterniond &q, const Eigen::Matrix3d &dcm) {
     }
 }
 
+void get_euler_from_R(Eigen::Vector3d &e, const Eigen::Matrix3d &R) {
+   float phi = atan2f(R(2, 1), R(2, 2));
+   float theta = asinf(-R(2, 0));
+   float psi = atan2f(R(1, 0), R(0, 0));
+   float pi = M_PI;
 
+   if (fabsf(theta - pi/2.0f) < 1.0e-3) {
+       phi = 0.0f;
+       psi = atan2f(R(1, 2), R(0, 2));
+   } else if (fabsf(theta + pi/2.0f) < 1.0e-3) {
+       phi = 0.0f;
+       psi = atan2f(-R(1, 2), -R(0, 2));
+   }
+   e(0) = phi;
+   e(1) = theta;
+   e(2) = psi;
+}
+
+void get_euler_from_q(Eigen::Vector3d &e, const Eigen::Quaterniond &q) {
+    Eigen::Matrix3d temp_R;
+    get_dcm_from_q(temp_R, q);
+    get_euler_from_R(e, temp_R);
+}
 
 #endif

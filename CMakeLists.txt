@@ -70,6 +70,7 @@ endif()
    FILES
    SetArm.srv
    SetHover.srv
+   SetTakeoffLand.srv
 #   Service1.srv
 #   Service2.srv
 )

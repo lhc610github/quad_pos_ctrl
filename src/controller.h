@@ -10,6 +10,7 @@
 #include "geometry_math_type.h"
 #include "quad_pos_ctrl/SetArm.h"
 #include "quad_pos_ctrl/SetHover.h"
+#include "quad_pos_ctrl/SetTakeoffLand.h"
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -38,6 +39,7 @@ class Controller : public State_Estimate {
 
             arm_srv = nh_.advertiseService("arm_disarm", &Controller::arm_disarm_srv_handle, this);
             hoverpos_srv = nh_.advertiseService("hover_pos", &Controller::hover_pos_srv_handle, this);
+            takeoff_land_srv = nh_.advertiseService("takeoff_land", &Controller::takeoff_land_srv_handle, this);
 
             int result = pthread_create( &ctrl_tid, NULL, &start_controller_loop_thread, this);
             if ( result ) throw result;
@@ -113,6 +115,8 @@ class Controller : public State_Estimate {
         bool hover_pos_srv_handle(quad_pos_ctrl::SetHover::Request& req,
                                     quad_pos_ctrl::SetHover::Response& res);
 
+        bool takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request& req,
+                                        quad_pos_ctrl::SetTakeoffLand::Response& res);
     private:
         ros::NodeHandle nh_;
         void controller_loop();
@@ -122,8 +126,10 @@ class Controller : public State_Estimate {
         cmd_s status_ref;
         bool already_running;
         arm_s arm_status;
+        /* service list */
         ros::ServiceServer arm_srv;
         ros::ServiceServer hoverpos_srv;
+        ros::ServiceServer takeoff_land_srv;
 
         ros::Time last_ctrol_timestamp;
 
