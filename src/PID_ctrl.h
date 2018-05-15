@@ -22,6 +22,7 @@ class PID_ctrl {
     public:
 
         PID_ctrl():
+        nh("~PID"),
         P_int(110.0f),
         V_diff(50.0f,25.0f),
         V_diff2(50.0f,25.0f) {
@@ -32,22 +33,68 @@ class PID_ctrl {
             has_init = false;
 
         /* ******************************************************* */
+        /*                    hover thrust param                   */
+        /* ------------------------------------------------------- */
+            //hover_thrust = 0.5f;
+            nh.param<double>("hover_thrust", hover_thrust, 0.5f);
+            std::cout<< "hover_thrust: " << hover_thrust << std::endl;
+
+        /* ******************************************************* */
         /*                  all state ctrl param                   */
         /* ------------------------------------------------------- */
-            all_state_ctrl_param.P_i << 0.6f, 0.6f, 0.6f;
+            nh.param<double>("all_state_ctrl_param/P_i/x", all_state_ctrl_param.P_i(0), 0.6f);
+            nh.param<double>("all_state_ctrl_param/P_i/y", all_state_ctrl_param.P_i(1), 0.6f);
+            nh.param<double>("all_state_ctrl_param/P_i/z", all_state_ctrl_param.P_i(2), 0.6f);
+            std::cout<< "all_state_ctrl_param/Pos gain i: " << all_state_ctrl_param.P_i.transpose() << std::endl;
+
+            nh.param<double>("all_state_ctrl_param/P_p/x", all_state_ctrl_param.P_p(0), 4.0f);
+            nh.param<double>("all_state_ctrl_param/P_p/y", all_state_ctrl_param.P_p(1), 4.0f);
+            nh.param<double>("all_state_ctrl_param/P_p/z", all_state_ctrl_param.P_p(2), 6.0f);
+            std::cout<< "all_state_ctrl_param/Pos gain p: " << all_state_ctrl_param.P_p.transpose() << std::endl;
+
+            nh.param<double>("all_state_ctrl_param/V_p/x", all_state_ctrl_param.V_p(0), 4.0f);
+            nh.param<double>("all_state_ctrl_param/V_p/y", all_state_ctrl_param.V_p(1), 4.0f);
+            nh.param<double>("all_state_ctrl_param/V_p/z", all_state_ctrl_param.V_p(2), 6.0f);
+            std::cout<< "all_state_ctrl_param/Vel gain p: " << all_state_ctrl_param.V_p.transpose() << std::endl;
+
+            nh.param<double>("all_state_ctrl_param/V_d/x", all_state_ctrl_param.V_d(0), 0.6f);
+            nh.param<double>("all_state_ctrl_param/V_d/y", all_state_ctrl_param.V_d(1), 0.6f);
+            nh.param<double>("all_state_ctrl_param/V_d/z", all_state_ctrl_param.V_d(2), 0.6f);
+            std::cout<< "all_state_ctrl_param/Vel gain d: " << all_state_ctrl_param.V_d.transpose() << std::endl;
+            /*all_state_ctrl_param.P_i << 0.6f, 0.6f, 0.6f;
             all_state_ctrl_param.P_p << 4.0f, 4.0f, 6.0f;
             all_state_ctrl_param.V_p << 4.0f, 4.0f, 6.0f;
-            all_state_ctrl_param.V_d << 0.6f, 0.6f, 0.6f;
+            all_state_ctrl_param.V_d << 0.6f, 0.6f, 0.6f;*/
         /* ------------------------------------------------------- */
         /* ******************************************************* */
 
         /* ******************************************************* */
         /*                single state ctrl param                  */
         /* ------------------------------------------------------- */
-            single_state_ctrl_param.P_i << 0.8f, 0.8f, 0.8f;
+            nh.param<double>("single_state_ctrl_param/P_i/x", single_state_ctrl_param.P_i(0), 0.8f);
+            nh.param<double>("single_state_ctrl_param/P_i/y", single_state_ctrl_param.P_i(1), 0.8f);
+            nh.param<double>("single_state_ctrl_param/P_i/z", single_state_ctrl_param.P_i(2), 0.8f);
+            std::cout<< "single_state_ctrl_param/Pos gain i: " << single_state_ctrl_param.P_i.transpose() << std::endl;
+
+            nh.param<double>("single_state_ctrl_param/P_p/x", single_state_ctrl_param.P_p(0), 1.5f);
+            nh.param<double>("signle_state_ctrl_param/P_p/y", single_state_ctrl_param.P_p(1), 1.5f);
+            nh.param<double>("single_state_ctrl_param/P_p/z", single_state_ctrl_param.P_p(2), 1.5f);
+            std::cout<< "single_state_ctrl_param/Pos gain p: " << single_state_ctrl_param.P_p.transpose() << std::endl;
+
+            nh.param<double>("single_state_ctrl_param/V_p/x", single_state_ctrl_param.V_p(0), 4.0f);
+            nh.param<double>("single_state_ctrl_param/V_p/y", single_state_ctrl_param.V_p(1), 4.0f);
+            nh.param<double>("single_state_ctrl_param/V_p/z", single_state_ctrl_param.V_p(2), 6.0f);
+            std::cout<< "single_state_ctrl_param/Vel gain p: " << single_state_ctrl_param.V_p.transpose() << std::endl;
+
+            nh.param<double>("single_state_ctrl_param/V_d/x", single_state_ctrl_param.V_d(0), 0.01f);
+            nh.param<double>("single_state_ctrl_param/V_d/y", single_state_ctrl_param.V_d(1), 0.01f);
+            nh.param<double>("single_state_ctrl_param/V_d/z", single_state_ctrl_param.V_d(2), 0.02f);
+            std::cout<< "single_state_ctrl_param/Vel gain d: " << single_state_ctrl_param.V_d.transpose() << std::endl;
+
+            /*single_state_ctrl_param.P_i << 0.8f, 0.8f, 0.8f;
             single_state_ctrl_param.P_p << 1.5f, 1.5f, 1.5f;
             single_state_ctrl_param.V_p << 4.0f, 4.0f, 6.0f;
-            single_state_ctrl_param.V_d << 0.01f, 0.01f, 0.02f;
+            single_state_ctrl_param.V_d << 0.01f, 0.01f, 0.02f;*/
         /* ------------------------------------------------------- */
         /* ******************************************************* */
 
@@ -117,9 +164,10 @@ class PID_ctrl {
         void start_logger(const ros::Time &t) {
             std::string logger_file_name("/home/lhc/work/demo_ws/src/quad_pos_ctrl/src/logger/");
             logger_file_name += "PID_logger";
-            char data[20];
+            /*char data[20];
             sprintf(data, "%lu", t.toNSec());
-            logger_file_name += data;
+            logger_file_name += data;*/
+            logger_file_name += getTime_string();
             logger_file_name += ".csv";
             if (logger.is_open()) {
                 logger.close();
@@ -153,6 +201,14 @@ class PID_ctrl {
                 logger << "acc_d_z" << ',';
                 logger << "ref_mask" << std::endl;
             }
+        }
+
+        std::string getTime_string() {
+            time_t timep;
+            timep = time(0);
+            char tmp[64];
+            strftime(tmp, sizeof(tmp), "%Y_%m_%d_%H_%M_%S",localtime(&timep));
+            return tmp;
         }
 #endif
         sa_res_s limit_func(Eigen::Vector3d &v, int order) {
@@ -341,7 +397,12 @@ class PID_ctrl {
             }
         }
 
+        double get_hover_thrust() {
+            return hover_thrust;
+        }
+
     private:
+        ros::NodeHandle nh;
         T state_ref;
         Intigrate_State<Eigen::Vector3d> P_int;
         Diff_State<Eigen::Vector3d> V_diff;
@@ -351,6 +412,7 @@ class PID_ctrl {
         Eigen::Vector3d g_vector;
         limit_s ctrl_limit;
         bool has_init;
+        double hover_thrust;
 #ifdef USE_LOGGER
         std::ofstream logger;
 #endif

@@ -8,9 +8,14 @@
 //#include <boost/thread.hpp>
 #include "PID_ctrl.h"
 #include "geometry_math_type.h"
+
+// srv
 #include "quad_pos_ctrl/SetArm.h"
 #include "quad_pos_ctrl/SetHover.h"
 #include "quad_pos_ctrl/SetTakeoffLand.h"
+// msg
+#include "quad_pos_ctrl/ctrl_ref.h"
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -19,10 +24,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <time.h>
 #endif
 
 #define ONE_G 9.78
-#define CTRL_K 0.3
 
 void * start_controller_loop_thread(void *args);
 
@@ -40,6 +45,8 @@ class Controller : public State_Estimate {
             arm_srv = nh_.advertiseService("arm_disarm", &Controller::arm_disarm_srv_handle, this);
             hoverpos_srv = nh_.advertiseService("hover_pos", &Controller::hover_pos_srv_handle, this);
             takeoff_land_srv = nh_.advertiseService("takeoff_land", &Controller::takeoff_land_srv_handle, this);
+
+            ctrl_ref_sub = nh_.subscribe("ctrl_ref",10, &Controller::ctrl_ref_cb, this);
 
             int result = pthread_create( &ctrl_tid, NULL, &start_controller_loop_thread, this);
             if ( result ) throw result;
@@ -97,6 +104,7 @@ class Controller : public State_Estimate {
 
 #ifdef USE_LOGGER
         void start_logger(const ros::Time & t);
+        std::string getTime_string();
 #endif
         void arm_disarm_vehicle(const bool & arm);
         void set_hover_pos(const Eigen::Vector3d & pos, const float & yaw);
@@ -117,6 +125,9 @@ class Controller : public State_Estimate {
 
         bool takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request& req,
                                         quad_pos_ctrl::SetTakeoffLand::Response& res);
+
+        void ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg);
+
     private:
         ros::NodeHandle nh_;
         void controller_loop();
@@ -130,6 +141,8 @@ class Controller : public State_Estimate {
         ros::ServiceServer arm_srv;
         ros::ServiceServer hoverpos_srv;
         ros::ServiceServer takeoff_land_srv;
+
+        ros::Subscriber ctrl_ref_sub;
 
         ros::Time last_ctrol_timestamp;
 

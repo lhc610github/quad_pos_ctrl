@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Vector3Stamped.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include "diff_intigral_cal.h"
@@ -44,15 +45,34 @@ class State_Estimate{
             state_.att_q.z() = rigid_.pose.orientation.z;
             state_.header = rigid_.header.stamp;
 
+            /* publish the vel acc state */
+            geometry_msgs::PoseStamped pose_msg;
+            geometry_msgs::Vector3Stamped vel_msg;
+            geometry_msgs::Vector3Stamped acc_msg;
+
+            pose_msg = rigid_;
+
+            vel_msg.header = rigid_.header;
+            vel_msg.vector.x = state_.Vel(0);
+            vel_msg.vector.y = state_.Vel(1);
+            vel_msg.vector.z = state_.Vel(2);
+
+            acc_msg.header = rigid_.header;
+            acc_msg.vector.x = state_.Acc(0);
+            acc_msg.vector.y = state_.Acc(1);
+            acc_msg.vector.z = state_.Acc(2);
+
             pthread_mutex_unlock(&mocap_mutex);
             //std::cout << "POS: " << state_.Pos.transpose() << std::endl; 
             //std::cout << "VEL: " << state_.Vel.transpose() << std::endl; 
             //std::cout << "ACC: " << state_.Acc.transpose() << std::endl; 
-            
+            pose_pub_.publish(pose_msg);
+            vel_pub_.publish(vel_msg);
+            acc_pub_.publish(acc_msg);
         }
         
         State_Estimate(int id) : 
-        nh_("state_estimate"),
+        nh_("~state_estimate"),
         rigidbody_id_(id),
         Pos_differ_(120.0f,60.0f),
         Vel_differ_(60.0f,30.0f) {
@@ -63,6 +83,9 @@ class State_Estimate{
             sprintf(child_channel,"%d",rigidbody_id_);
             char * topic_channel = strcat(base_channel,child_channel);
             mocap_sub_ = nh_.subscribe(topic_channel,10,&State_Estimate::mocap_data_cb,this);
+            pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("pose",10);
+            vel_pub_ = nh_.advertise<geometry_msgs::Vector3Stamped>("vel",10);
+            acc_pub_ = nh_.advertise<geometry_msgs::Vector3Stamped>("acc",10);
             pthread_mutex_init(&mocap_mutex, NULL);
             //mocap_sub = nh_->subscribe("/mocap_data_rigid1",10,&State_Estimate::mocap_data_cb,this);
             //Pos_differ_(120.0f);
@@ -91,6 +114,9 @@ class State_Estimate{
         State_s state_;
         ros::Subscriber mocap_sub_;
         pthread_mutex_t mocap_mutex;
+        ros::Publisher pose_pub_;
+        ros::Publisher vel_pub_;
+        ros::Publisher acc_pub_;
 };
 
 #endif

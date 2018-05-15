@@ -59,11 +59,12 @@ endif()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
+ add_message_files(
+   FILES
+   ctrl_ref.msg
 #   Message1.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
  add_service_files(
@@ -161,6 +162,8 @@ add_library(quad_pos_ctrl
 add_executable(quad_pos_ctrl_node src/quad_pos_ctrl_node.cpp)
 add_executable(test_pub_node test/test_pub_node.cpp)
 add_executable(test_takeoff_node test/test_takeoff_node.cpp)
+add_executable(test_takeoff_node2 test/test_takeoff_node2.cpp)
+add_executable(test_sample_mocap test/test_sample_mocap.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -187,6 +190,14 @@ target_link_libraries(test_pub_node
 )
 
 target_link_libraries(test_takeoff_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(test_takeoff_node2
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(test_sample_mocap
   ${catkin_LIBRARIES}
 )
 #############

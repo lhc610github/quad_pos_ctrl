@@ -75,7 +75,7 @@ Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &
         get_dcm_from_q(_R, get_state().att_q); 
         /* get U1 */
         double real_U1 = - ctrl_res.res.transpose() * _R.col(2);
-        res.U1 = real_U1 / ONE_G * CTRL_K;
+        res.U1 = real_U1 / ONE_G * ctrl_core.get_hover_thrust();
         
         /* get body_z */
         Eigen::Vector3d _body_z;
@@ -175,23 +175,36 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
     get_euler_from_q(euler, state_now.att_q);
     float yaw_d = euler(2);
     if (req.takeoff) {
-        pos_d << state_now.Pos(0), state_now.Pos(1), req.takeoff_altitude;
+        pos_d << state_now.Pos(0), state_now.Pos(1), -req.takeoff_altitude;
     } else {
         pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
     }
     set_hover_pos(pos_d,yaw_d);
+    sleep(3);
     arm_disarm_vehicle(req.takeoff);
     res.res = true;
     return true;
+}
+
+void Controller::ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg) {
+    pthread_mutex_lock(&ctrl_mutex);
+    status_ref.header = msg.header.stamp;
+    status_ref.pos_d << msg.pos_ref[0], msg.pos_ref[1], msg.pos_ref[2];
+    status_ref.vel_d << msg.vel_ref[0], msg.vel_ref[1], msg.vel_ref[2];
+    status_ref.acc_d << msg.acc_ref[0], msg.acc_ref[1], msg.acc_ref[2];
+    status_ref.yaw_d = msg.yaw_ref;
+    status_ref.cmd_mask = msg.ref_mask;
+    pthread_mutex_unlock(&ctrl_mutex);
 }
 
 #ifdef USE_LOGGER
 void Controller::start_logger(const ros::Time & t) {
     std::string logger_file_name("/home/lhc/work/demo_ws/src/quad_pos_ctrl/src/logger/");
     logger_file_name += "ctrl_logger";
-    char data[20];
+    /*char data[20];
     sprintf(data, "%lu", t.toNSec());
-    logger_file_name += data;
+    logger_file_name += data;*/
+    logger_file_name += getTime_string();
     logger_file_name += ".csv";
     if (ctrl_logger.is_open()) {
         ctrl_logger.close();
@@ -210,6 +223,14 @@ void Controller::start_logger(const ros::Time & t) {
         ctrl_logger << "q_d_y" << ',';
         ctrl_logger << "q_d_z" << std::endl;
     }
+}
+
+std::string Controller::getTime_string() {
+    time_t timep;
+    timep = time(0);
+    char tmp[64];
+    strftime(tmp, sizeof(tmp), "%Y_%m_%d_%H_%M_%S",localtime(&timep));
+    return tmp;
 }
 #endif
 
