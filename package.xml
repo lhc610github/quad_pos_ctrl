@@ -65,6 +65,9 @@
   <exec_depend>message_runtime</exec_depend>
   <depend>mavros</depend>
 
+  <depend>mav_trajectory_generation</depend>
+  <depend>mav_trajectory_generation_ros</depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

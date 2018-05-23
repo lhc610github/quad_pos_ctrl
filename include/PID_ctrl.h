@@ -24,11 +24,11 @@ class PID_ctrl {
         PID_ctrl():
         nh("~PID"),
         P_int(110.0f),
-        V_diff(50.0f,25.0f),
-        V_diff2(50.0f,25.0f) {
+        V_diff(50.0f,25.0f) {//,
+        //V_diff2(50.0f,25.0f) {
             P_int.reset();
             V_diff.reset();
-            V_diff2.reset();
+            //V_diff2.reset();
             g_vector << 0.0f , 0.0f ,-9.8f;
             has_init = false;
 
@@ -101,10 +101,18 @@ class PID_ctrl {
         /* ******************************************************* */
         /*               limit param for controller                */
         /* ------------------------------------------------------- */
-            ctrl_limit.vel_xy_limit = 1.0f;
+            nh.param<double>("ctrl_limit/vel_xy_limit", ctrl_limit.vel_xy_limit, 1.0f);
+            nh.param<double>("ctrl_limit/vel_z_limit", ctrl_limit.vel_z_limit, 1.0f);
+            nh.param<double>("ctrl_limit/acc_xy_limit", ctrl_limit.acc_xy_limit, 5.0f);
+            nh.param<double>("ctrl_limit/acc_z_limit", ctrl_limit.acc_z_limit, 8.0f);
+            std::cout<< "vel limit in xy(m/s):" << ctrl_limit.vel_xy_limit << std::endl;
+            std::cout<< "vel limit in z(m/s) :" << ctrl_limit.vel_z_limit << std::endl;
+            std::cout<< "acc limit in xy(m/s^2):" << ctrl_limit.acc_xy_limit << std::endl;
+            std::cout<< "acc limit in z(m/s^2) :" << ctrl_limit.acc_z_limit << std::endl;
+            /*ctrl_limit.vel_xy_limit = 1.0f;
             ctrl_limit.vel_z_limit = 1.0f;
             ctrl_limit.acc_xy_limit = 5.0f;
-            ctrl_limit.acc_z_limit = 8.0f;
+            ctrl_limit.acc_z_limit = 8.0f;*/
         /* ------------------------------------------------------- */
         /* ******************************************************* */
         }
@@ -156,7 +164,7 @@ class PID_ctrl {
         void reset() {
             P_int.reset();
             V_diff.reset();
-            V_diff2.reset();
+            //V_diff2.reset();
             has_init = false;
         }
 
@@ -247,11 +255,11 @@ class PID_ctrl {
 
         void set_ref(const T &ref) { state_ref = ref; }
 
-        Eigen::Vector3d all_state_ctrl(const Eigen::Vector3d &P_e,const Eigen::Vector3d &V_e, const K &state) {
+        Eigen::Vector3d all_state_ctrl(const Eigen::Vector3d &P_e,const Eigen::Vector3d &V_e,const Eigen::Vector3d &A_e, const K &state) {
 
                 V_diff.update(V_e,state.header); 
-                Eigen::Vector3d ctrl_V_diff; 
-                V_diff.get_diff(ctrl_V_diff);
+                //Eigen::Vector3d ctrl_V_diff; 
+                //V_diff.get_diff(ctrl_V_diff);
 
                 Eigen::Vector3d ctrl_P_int; 
                 P_int.get_int(ctrl_P_int); 
@@ -259,7 +267,9 @@ class PID_ctrl {
                 Eigen::Vector3d res;
                 res = ctrl_P_int.array() + all_state_ctrl_param.P_p.array()*P_e.array()
                     + all_state_ctrl_param.V_p.array()*V_e.array()
-                    + all_state_ctrl_param.V_d.array()*ctrl_V_diff.array();
+                    //+ all_state_ctrl_param.V_d.array()*ctrl_V_diff.array();
+                    + all_state_ctrl_param.V_d.array()*A_e.array()
+                    + state_ref.acc_d.array();
                 sa_res_s sa_state = limit_func(res,2);
                 Eigen::Vector3d int_e;
                 int_e = P_e;
@@ -317,9 +327,11 @@ class PID_ctrl {
                 }
                 Eigen::Vector3d e_V = state_ref.vel_d - state.Vel;
 
-                V_diff2.update(-state.Vel,state.header); 
+                /*V_diff2.update(-state.Vel,state.header); 
                 Eigen::Vector3d ctrl_V_diff; 
-                V_diff2.get_diff(ctrl_V_diff);
+                V_diff2.get_diff(ctrl_V_diff);*/
+                Eigen::Vector3d ctrl_V_diff; 
+                ctrl_V_diff = -state.Acc;
 
                 Eigen::Vector3d ctrl_P_int; 
                 P_int.get_int(ctrl_P_int); 
@@ -388,7 +400,8 @@ class PID_ctrl {
                 if ( state_ref.cmd_mask  == (P_C_V|V_C_V|A_C_V) ) {
                     Eigen::Vector3d e_P = state_ref.pos_d - state.Pos; 
                     Eigen::Vector3d e_V = state_ref.vel_d - state.Vel; 
-                    res.res = all_state_ctrl(e_P,e_V,state); 
+                    Eigen::Vector3d e_A = state_ref.acc_d - state.Acc; 
+                    res.res = all_state_ctrl(e_P,e_V,e_A,state); 
                 } else {
                     res.res = single_state_ctrl(state);
                 }
@@ -406,7 +419,7 @@ class PID_ctrl {
         T state_ref;
         Intigrate_State<Eigen::Vector3d> P_int;
         Diff_State<Eigen::Vector3d> V_diff;
-        Diff_State<Eigen::Vector3d> V_diff2;
+        //Diff_State<Eigen::Vector3d> V_diff2;
         param_s all_state_ctrl_param; 
         param_s single_state_ctrl_param; 
         Eigen::Vector3d g_vector;

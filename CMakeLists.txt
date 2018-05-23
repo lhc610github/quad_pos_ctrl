@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_runtime
   message_generation
   mavros
+  mav_trajectory_generation
+  mav_trajectory_generation_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -62,6 +64,9 @@ endif()
  add_message_files(
    FILES
    ctrl_ref.msg
+   factors.msg
+   segments.msg
+   trajectorys.msg
 #   Message1.msg
 #   Message2.msg
 )
@@ -123,7 +128,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES quad_pos_ctrl
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros
+  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros mav_trajectory_generation mav_trajectory_generation_ros
 #  DEPENDS system_lib
 )
 
@@ -140,6 +145,9 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${mav_trajectory_generation_DIRS}
+  ${mav_trajectory_generation_ros_DIRS}
+  include
 )
 
 ## Declare a C++ library
@@ -159,11 +167,14 @@ add_library(quad_pos_ctrl
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/quad_pos_ctrl_node.cpp)
+# main node
 add_executable(quad_pos_ctrl_node src/quad_pos_ctrl_node.cpp)
+# test node
 add_executable(test_pub_node test/test_pub_node.cpp)
 add_executable(test_takeoff_node test/test_takeoff_node.cpp)
 add_executable(test_takeoff_node2 test/test_takeoff_node2.cpp)
 add_executable(test_sample_mocap test/test_sample_mocap.cpp)
+add_executable(linear_optimal_test test/linear_optimal_test.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -198,7 +209,13 @@ target_link_libraries(test_takeoff_node2
 )
 
 target_link_libraries(test_sample_mocap
+  quad_pos_ctrl
   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(linear_optimal_test
+  ${mav_trajectory_generation_LIBRARIES}
+  ${mav_trajectory_generation_ros_LIBRARIES}
 )
 #############
 ## Install ##

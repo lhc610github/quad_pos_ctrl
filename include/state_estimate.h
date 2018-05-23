@@ -7,6 +7,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include "diff_intigral_cal.h"
+#include "sliding_differentiation.h"
 
 class State_Estimate{
     public:
@@ -24,7 +25,7 @@ class State_Estimate{
             rigid_ = mocap_data;
             state_.Pos << rigid_.pose.position.x, rigid_.pose.position.y, rigid_.pose.position.z; 
             
-            Pos_differ_.update(state_.Pos, rigid_.header.stamp);
+            /*Pos_differ_.update(state_.Pos, rigid_.header.stamp);
             Eigen::Vector3d temp;
             if (Pos_differ_.get_diff(temp)) {
                 state_.Vel = temp;
@@ -35,6 +36,15 @@ class State_Estimate{
                     state_.Acc = Eigen::Vector3d::Zero();
                 }
             } else {
+                state_.Vel = Eigen::Vector3d::Zero();
+                state_.Acc = Eigen::Vector3d::Zero();
+            }*/
+            if(sliding_differ_.get_status()) {
+                sliding_differ_.update(state_.Pos, rigid_.header.stamp);
+                sliding_differ_.get_diff(state_.Vel,1);
+                sliding_differ_.get_diff(state_.Acc,2);
+            } else {
+                sliding_differ_.init_diff(state_.Pos, rigid_.header.stamp);
                 state_.Vel = Eigen::Vector3d::Zero();
                 state_.Acc = Eigen::Vector3d::Zero();
             }
@@ -74,8 +84,9 @@ class State_Estimate{
         State_Estimate(int id) : 
         nh_("~state_estimate"),
         rigidbody_id_(id),
-        Pos_differ_(120.0f,60.0f),
-        Vel_differ_(60.0f,30.0f) {
+        //Pos_differ_(120.0f,60.0f),
+        //Vel_differ_(60.0f,30.0f) {
+        sliding_differ_(4){
             char * base_channel;
             base_channel = new char[sizeof("/mocap_data_rigid")];
             strcpy(base_channel,"/mocap_data_rigid");
@@ -87,9 +98,6 @@ class State_Estimate{
             vel_pub_ = nh_.advertise<geometry_msgs::Vector3Stamped>("vel",10);
             acc_pub_ = nh_.advertise<geometry_msgs::Vector3Stamped>("acc",10);
             pthread_mutex_init(&mocap_mutex, NULL);
-            //mocap_sub = nh_->subscribe("/mocap_data_rigid1",10,&State_Estimate::mocap_data_cb,this);
-            //Pos_differ_(120.0f);
-            //Vel_differ_(120.0f);
         }
         ~State_Estimate() {
             pthread_mutex_destroy(&mocap_mutex);
@@ -109,8 +117,9 @@ class State_Estimate{
         ros::NodeHandle nh_;
         int rigidbody_id_;
         geometry_msgs::PoseStamped rigid_;
-        Diff_State<Eigen::Vector3d> Pos_differ_;
-        Diff_State<Eigen::Vector3d> Vel_differ_;
+        //Diff_State<Eigen::Vector3d> Pos_differ_;
+        //Diff_State<Eigen::Vector3d> Vel_differ_;
+        Sliding_diff<Eigen::Vector3d> sliding_differ_;
         State_s state_;
         ros::Subscriber mocap_sub_;
         pthread_mutex_t mocap_mutex;

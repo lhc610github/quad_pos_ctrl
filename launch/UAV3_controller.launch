@@ -14,5 +14,9 @@
         <param name="/PID/single_state_ctrl_param/V_d/x" value= "0.01"/>
         <param name="/PID/single_state_ctrl_param/V_d/y" value= "0.01"/>
         <param name="/PID/single_state_ctrl_param/V_d/z" value= "0.02"/>
+        <param name="/PID/ctrl_limit/vel_xy_limit" value= "1.01"/>
+        <param name="/PID/ctrl_limit/vel_z_limit" value= "1.01"/>
+        <param name="/PID/ctrl_limit/acc_xy_limit" value= "5.01"/>
+        <param name="/PID/ctrl_limit/acc_z_limit" value= "8.01"/>
     </node>
 </launch>
