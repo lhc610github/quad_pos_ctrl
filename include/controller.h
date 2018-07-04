@@ -37,6 +37,8 @@ class Controller : public State_Estimate {
         Controller (int rigid_id):
         State_Estimate(rigid_id),
         mavros_interface(rigid_id),
+        ctrl_core(rigid_id),
+        uav_id(rigid_id),
         nh_("~controller") {
             already_running = false;
             pthread_mutex_init(&ctrl_mutex, NULL);
@@ -103,7 +105,7 @@ class Controller : public State_Estimate {
         }arm_s;
 
 #ifdef USE_LOGGER
-        void start_logger(const ros::Time & t);
+        void start_logger(const ros::Time & t, const int &id);
         std::string getTime_string();
 #endif
         void arm_disarm_vehicle(const bool & arm);
@@ -149,6 +151,8 @@ class Controller : public State_Estimate {
         Mavros_Interface mavros_interface;
         
         pthread_mutex_t ctrl_mutex;
+
+        int uav_id;
 
 #ifdef USE_LOGGER
         //Logger ctrl_logger;

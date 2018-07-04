@@ -85,57 +85,27 @@ int main(int argc,char** argv){
         vertices.push_back(end);*/
     
     // straight line
-        start.makeStartOrEnd(Eigen::Vector3d(-1,-1,-1.5),derivative_to_optimize);
+        start.makeStartOrEnd(Eigen::Vector3d(-1,2,-1.0),derivative_to_optimize);
         vertices.push_back(start);
 
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,1,-1.5));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,2,-1.8));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY,Eigen::Vector3d(0,0,0));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION,Eigen::Vector3d(-3,0,7.0));
         vertices.push_back(middle);
 
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,1,-1.5));
+        /*middle.removeConstraint(mav_trajectory_generation::derivative_order::VELOCITY);
+        middle.removeConstraint(mav_trajectory_generation::derivative_order::ACCELERATION);
+        middle.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY,Eigen::Vector3d(0,0,0));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION,Eigen::Vector3d(0,0,0.0));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,2,-1.0));
         vertices.push_back(middle);
 
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,-1,-1.5));
-        vertices.push_back(middle);
+        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,2,-1.5));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY,Eigen::Vector3d(0,0,0));
+        middle.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION,Eigen::Vector3d(-3,0,7.0));
+        vertices.push_back(middle); */
 
-        /*middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,-1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,-1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,-1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,-1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,-1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,1,-1.5));
-        vertices.push_back(middle);
-
-        middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(1,-1,-1.5));
-        vertices.push_back(middle);*/
-        //middle.addConstraint(mav_trajectory_generation::derivative_order::POSITION,Eigen::Vector3d(-1,-1,-1.5));
-        //vertices.push_back(middle);
-
-        end.makeStartOrEnd(Eigen::Vector3d(-1,-1,-1.5),derivative_to_optimize);
+        end.makeStartOrEnd(Eigen::Vector3d(-1,2,-1.0),derivative_to_optimize);
         vertices.push_back(end);
     // curve 3 in paper
         /*start.makeStartOrEnd(Eigen::Vector3d(-1.2,0,2),derivative_to_optimize);
@@ -288,8 +258,8 @@ int main(int argc,char** argv){
     
     ros::Publisher vis_pub = n.advertise<visualization_msgs::MarkerArray>( "trajectory_traject" , 10);
     //ros::Publisher traj_pub = n.advertise<quad_pos_ctrl::trajectorys>( "traj_ref" , 10);
-    ros::ServiceClient takeoff_land_srv = n.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node3/controller/takeoff_land");
-    ros::Publisher ctrl_ref_pub = n.advertise<quad_pos_ctrl::ctrl_ref>("/quad_pos_ctrl_node3/controller/ctrl_ref",10);
+    ros::ServiceClient takeoff_land_srv = n.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node5/controller/takeoff_land");
+    ros::Publisher ctrl_ref_pub = n.advertise<quad_pos_ctrl::ctrl_ref>("/quad_pos_ctrl_node5/controller/ctrl_ref",10);
 
     quad_pos_ctrl::ctrl_ref traject_ctrl_ref;
     ros::Rate sleep_rate1(10);

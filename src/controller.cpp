@@ -123,7 +123,7 @@ void Controller::arm_disarm_vehicle(const bool & arm) {
     if (arm) {
         ROS_INFO("vehicle will be armed!");
 #ifdef USE_LOGGER
-            start_logger(ros::Time::now());
+            start_logger(ros::Time::now(),uav_id);
 #endif
         if (mavros_interface.set_arm_and_offboard()) {
             ROS_INFO("done!");
@@ -198,14 +198,17 @@ void Controller::ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg) {
 }
 
 #ifdef USE_LOGGER
-void Controller::start_logger(const ros::Time & t) {
+void Controller::start_logger(const ros::Time & t, const int &id) {
     std::string logger_file_name("/home/lhc/work/demo_ws/src/quad_pos_ctrl/src/logger/");
-    logger_file_name += "ctrl_logger";
+    logger_file_name += "UAV_";
+    logger_file_name += std::to_string(id);
+    logger_file_name += "/ctrl_logger";
     /*char data[20];
     sprintf(data, "%lu", t.toNSec());
     logger_file_name += data;*/
     logger_file_name += getTime_string();
     logger_file_name += ".csv";
+    std::cout << "controller logger: "<< logger_file_name << std::endl;
     if (ctrl_logger.is_open()) {
         ctrl_logger.close();
     }

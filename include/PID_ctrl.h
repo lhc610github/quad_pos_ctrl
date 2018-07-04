@@ -21,10 +21,11 @@ template<class T,class K>
 class PID_ctrl {
     public:
 
-        PID_ctrl():
+        PID_ctrl(int id):
         nh("~PID"),
         P_int(110.0f),
-        V_diff(50.0f,25.0f) {//,
+        V_diff(50.0f,25.0f),
+        uav_id(id){//,
         //V_diff2(50.0f,25.0f) {
             P_int.reset();
             V_diff.reset();
@@ -155,9 +156,18 @@ class PID_ctrl {
         typedef struct saturate_state_t {
             bool xy_saturate;
             bool z_saturate;
+            bool x_int_saturate;
+            bool x_int_positive;
+            bool y_int_saturate;
+            bool y_int_positive;
+            bool z_int_saturate;
+            bool z_int_positive;
             saturate_state_t() {
                 xy_saturate = false;
                 z_saturate = false;
+                x_int_saturate = false;
+                y_int_saturate = false;
+                z_int_saturate = false;
             }
         }sa_res_s;
 
@@ -169,9 +179,11 @@ class PID_ctrl {
         }
 
 #ifdef USE_LOGGER
-        void start_logger(const ros::Time &t) {
+        void start_logger(const ros::Time &t, const int &id) {
             std::string logger_file_name("/home/lhc/work/demo_ws/src/quad_pos_ctrl/src/logger/");
-            logger_file_name += "PID_logger";
+            logger_file_name += "UAV_";
+            logger_file_name += std::to_string(id);
+            logger_file_name += "/PID_logger";
             /*char data[20];
             sprintf(data, "%lu", t.toNSec());
             logger_file_name += data;*/
@@ -181,6 +193,7 @@ class PID_ctrl {
                 logger.close();
             }
             logger.open(logger_file_name.c_str(), std::ios::out);
+            std::cout << "PID logger: "<< logger_file_name << std::endl;
             if (!logger.is_open()) {
                 std::cout << "cannot open the logger." << std::endl;
             } else {
@@ -207,6 +220,9 @@ class PID_ctrl {
                 logger << "acc_d_x" << ',';
                 logger << "acc_d_y" << ',';
                 logger << "acc_d_z" << ',';
+                logger << "int_x" << ',';
+                logger << "int_y" << ',';
+                logger << "int_z" << ',';
                 logger << "ref_mask" << std::endl;
             }
         }
@@ -248,6 +264,28 @@ class PID_ctrl {
                     res.z_saturate = true;
                 }
             }
+
+            if (order == 3) {
+                float temp_x = fabsf(v(0));
+                if (temp_x > (ctrl_limit.acc_xy_limit/5.0f)) {
+                    v(0) = v(0) / temp_x * ctrl_limit.acc_xy_limit/5.0f;
+                    res.x_int_positive = v(0)>0? true:false;
+                    res.x_int_saturate = true;
+                }
+                float temp_y = fabsf(v(1));
+                if (temp_y > (ctrl_limit.acc_xy_limit/5.0f)) {
+                    v(1) = v(1) / temp_y * ctrl_limit.acc_xy_limit/5.0f;
+                    res.y_int_positive = v(1)>0? true:false;
+                    res.y_int_saturate = true;
+                }
+                float temp_z = fabsf(v(2));
+                if (temp_z > (ctrl_limit.acc_z_limit/3.0f)) {
+                    v(2) = v(2) / temp_z * ctrl_limit.acc_z_limit/3.0f;
+                    res.z_int_positive = v(2)>0? true:false;
+                    res.z_int_saturate = true;
+                }
+            }
+
             return res;
         }
 
@@ -280,6 +318,32 @@ class PID_ctrl {
                 if ( sa_state.z_saturate ) {
                     int_e(2) = 0.0f;
                 }
+
+                sa_res_s int_sa_state = limit_func(ctrl_P_int,3);
+                if (int_sa_state.x_int_saturate) {
+                    if (int_sa_state.x_int_positive) {
+                        int_e(0) = int_e(0)<0? int_e(0):0.0f;
+                    } else {
+                        int_e(0) = int_e(0)>0? int_e(0):0.0f;
+                    }
+                }
+
+                if (int_sa_state.y_int_saturate) {
+                    if (int_sa_state.y_int_positive) {
+                        int_e(1) = int_e(1)<0? int_e(1):0.0f;
+                    } else {
+                        int_e(1) = int_e(1)>0? int_e(1):0.0f;
+                    }
+                }
+
+                if (int_sa_state.z_int_saturate) {
+                    if (int_sa_state.z_int_positive) {
+                        int_e(2) = int_e(2)<0? int_e(2):0.0f;
+                    } else {
+                        int_e(2) = int_e(2)>0? int_e(2):0.0f;
+                    }
+                }
+
                 P_int.update(all_state_ctrl_param.P_i.array()*int_e.array(),state.header); 
                 res = res.array()
                     + g_vector.array();
@@ -308,6 +372,9 @@ class PID_ctrl {
                     logger << state_ref.acc_d(0) << ',';
                     logger << state_ref.acc_d(1) << ',';
                     logger << state_ref.acc_d(2) << ',';
+                    logger << ctrl_P_int(0) << ',';
+                    logger << ctrl_P_int(1) << ',';
+                    logger << ctrl_P_int(2) << ',';
                     logger << (int)state_ref.cmd_mask << std::endl;
                 }
 #endif
@@ -352,6 +419,32 @@ class PID_ctrl {
                 if ( sa_state.z_saturate ) {
                     int_e(2) = 0.0f;
                 }
+
+                sa_res_s int_sa_state = limit_func(ctrl_P_int,3);
+                if (int_sa_state.x_int_saturate) {
+                    if (int_sa_state.x_int_positive) {
+                        int_e(0) = int_e(0)<0? int_e(0):0.0f;
+                    } else {
+                        int_e(0) = int_e(0)>0? int_e(0):0.0f;
+                    }
+                }
+
+                if (int_sa_state.y_int_saturate) {
+                    if (int_sa_state.y_int_positive) {
+                        int_e(1) = int_e(1)<0? int_e(1):0.0f;
+                    } else {
+                        int_e(1) = int_e(1)>0? int_e(1):0.0f;
+                    }
+                }
+
+                if (int_sa_state.z_int_saturate) {
+                    if (int_sa_state.z_int_positive) {
+                        int_e(2) = int_e(2)<0? int_e(2):0.0f;
+                    } else {
+                        int_e(2) = int_e(2)>0? int_e(2):0.0f;
+                    }
+                }
+
                 P_int.update(single_state_ctrl_param.P_i.array()*int_e.array(),state.header);
                 //std::cout << int_e.transpose() << std::endl;
                 res = res.array()
@@ -381,6 +474,9 @@ class PID_ctrl {
                     logger << state_ref.acc_d(0) << ',';
                     logger << state_ref.acc_d(1) << ',';
                     logger << state_ref.acc_d(2) << ',';
+                    logger << ctrl_P_int(0) << ',';
+                    logger << ctrl_P_int(1) << ',';
+                    logger << ctrl_P_int(2) << ',';
                     logger << (int)state_ref.cmd_mask << std::endl;
                 }
 #endif
@@ -392,7 +488,7 @@ class PID_ctrl {
         bool run(const K &state, res_s &res) {
             res.header = state.header;
             if (!has_init) {
-                start_logger(ros::Time::now());
+                start_logger(ros::Time::now(),uav_id);
                 has_init = true;
             }
 
@@ -426,6 +522,7 @@ class PID_ctrl {
         limit_s ctrl_limit;
         bool has_init;
         double hover_thrust;
+        int uav_id;
 #ifdef USE_LOGGER
         std::ofstream logger;
 #endif
