@@ -3,7 +3,7 @@
 
 #define USE_LOGGER 1
 
-#include "state_estimate.h"
+#include "state_estimate_vio.h"
 #include "mavros_interface.h"
 //#include <boost/thread.hpp>
 #include "PID_ctrl.h"
@@ -31,11 +31,11 @@
 
 void * start_controller_loop_thread(void *args);
 
-class Controller : public State_Estimate {
+class Controller : public State_Estimate_Vio {
     public:
 
         Controller (int rigid_id):
-        State_Estimate(rigid_id),
+        State_Estimate_Vio(rigid_id),
         mavros_interface(rigid_id),
         ctrl_core(rigid_id),
         uav_id(rigid_id),
