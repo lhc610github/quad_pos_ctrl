@@ -87,6 +87,7 @@ class Mavros_Interface {
 
             sleep(5);*/
             ros::Rate _ofb_check_rate(0.3);
+            int try_arm_ofb_times = 0;
             while (!_state.offboard_enabled || !_state.has_armed ) {
                 if(_state.offboard_enabled) {
                     ros::Rate _arm_check_rate(0.3);
@@ -95,6 +96,11 @@ class Mavros_Interface {
                         arm_srv.request.value = true;
                         if (arm_disarm_client.call(arm_srv)) {
                             ROS_INFO("vehicle ARMED");
+                        }
+                        try_arm_ofb_times = try_arm_ofb_times + 1;
+                        if (try_arm_ofb_times >= 3) {
+                            ROS_INFO("try 3 times, cannot armed uav, give up!");
+                            return false;
                         }
                         _arm_check_rate.sleep();
                     }

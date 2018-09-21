@@ -199,7 +199,7 @@ void Controller::ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg) {
 
 #ifdef USE_LOGGER
 void Controller::start_logger(const ros::Time & t, const int &id) {
-    std::string logger_file_name("/home/lhc/work/demo_ws/src/quad_pos_ctrl/src/logger/");
+    std::string logger_file_name("/home/nuc/pos_ctrl_ws/src/quad_pos_ctrl/src/logger/");
     logger_file_name += "UAV_";
     logger_file_name += std::to_string(id);
     logger_file_name += "/ctrl_logger";

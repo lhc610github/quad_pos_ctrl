@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(quad_pos_ctrl)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -15,8 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_runtime
   message_generation
   mavros
-  mav_trajectory_generation
-  mav_trajectory_generation_ros
+#  mav_trajectory_generation
+#  mav_trajectory_generation_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -128,7 +128,8 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES quad_pos_ctrl
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros mav_trajectory_generation mav_trajectory_generation_ros
+  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros 
+#  mav_trajectory_generation mav_trajectory_generation_ros
 #  DEPENDS system_lib
 )
 
@@ -145,8 +146,8 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${mav_trajectory_generation_DIRS}
-  ${mav_trajectory_generation_ros_DIRS}
+#  ${mav_trajectory_generation_DIRS}
+#  ${mav_trajectory_generation_ros_DIRS}
   include
 )
 
@@ -174,10 +175,10 @@ add_executable(test_pub_node test/test_pub_node.cpp)
 add_executable(test_takeoff_node test/test_takeoff_node.cpp)
 add_executable(test_takeoff_node2 test/test_takeoff_node2.cpp)
 add_executable(test_takeoff_node3 test/test_takeoff_node3.cpp)
-add_executable(test_sample_mocap test/test_sample_mocap.cpp)
-add_executable(linear_optimal_test test/linear_optimal_test.cpp)
-add_executable(nonlinear_optimal_test2 test/nonlinear_optimal_test2.cpp)
-add_executable(linear_optimal_formation_test test/linear_optimal_formation_test.cpp)
+#add_executable(test_sample_mocap test/test_sample_mocap.cpp)
+#add_executable(linear_optimal_test test/linear_optimal_test.cpp)
+#add_executable(nonlinear_optimal_test2 test/nonlinear_optimal_test2.cpp)
+#add_executable(linear_optimal_formation_test test/linear_optimal_formation_test.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -215,25 +216,25 @@ target_link_libraries(test_takeoff_node3
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(test_sample_mocap
-  quad_pos_ctrl
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(test_sample_mocap
+  #quad_pos_ctrl
+  #${catkin_LIBRARIES}
+#)
 
-target_link_libraries(linear_optimal_test
-  ${mav_trajectory_generation_LIBRARIES}
-  ${mav_trajectory_generation_ros_LIBRARIES}
-)
+#target_link_libraries(linear_optimal_test
+#  ${mav_trajectory_generation_LIBRARIES}
+#  ${mav_trajectory_generation_ros_LIBRARIES}
+#)
 
-target_link_libraries(nonlinear_optimal_test2
-  ${mav_trajectory_generation_LIBRARIES}
-  ${mav_trajectory_generation_ros_LIBRARIES}
-)
+#target_link_libraries(nonlinear_optimal_test2
+#  ${mav_trajectory_generation_LIBRARIES}
+#  ${mav_trajectory_generation_ros_LIBRARIES}
+#)
 
-target_link_libraries(linear_optimal_formation_test
-  ${mav_trajectory_generation_LIBRARIES}
-  ${mav_trajectory_generation_ros_LIBRARIES}
-)
+#target_link_libraries(linear_optimal_formation_test
+#  ${mav_trajectory_generation_LIBRARIES}
+#  ${mav_trajectory_generation_ros_LIBRARIES}
+#)
 #############
 ## Install ##
 #############

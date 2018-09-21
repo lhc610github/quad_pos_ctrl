@@ -180,7 +180,7 @@ class PID_ctrl {
 
 #ifdef USE_LOGGER
         void start_logger(const ros::Time &t, const int &id) {
-            std::string logger_file_name("/home/lhc/work/demo_ws/src/quad_pos_ctrl/src/logger/");
+            std::string logger_file_name("/home/nuc/pos_ctrl_ws/src/quad_pos_ctrl/src/logger/");
             logger_file_name += "UAV_";
             logger_file_name += std::to_string(id);
             logger_file_name += "/PID_logger";

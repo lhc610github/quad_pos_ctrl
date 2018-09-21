@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "state_estimate.h"
+#include "state_estimate_vio.h"
 #include "controller.h"
 
 int main(int argc, char **argv) {
