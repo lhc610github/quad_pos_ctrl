@@ -15,6 +15,7 @@
 #include "quad_pos_ctrl/SetTakeoffLand.h"
 // msg
 #include "quad_pos_ctrl/ctrl_ref.h"
+#include "geometry_msgs/PointStamped.h"
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -42,6 +43,7 @@ class Controller : public State_Estimate_Vio {
         nh_("~controller") {
             already_running = false;
             pthread_mutex_init(&ctrl_mutex, NULL);
+            pthread_mutex_init(&lidar_data_mutex, NULL);
             arm_status.reset();
 
             arm_srv = nh_.advertiseService("arm_disarm", &Controller::arm_disarm_srv_handle, this);
@@ -49,6 +51,8 @@ class Controller : public State_Estimate_Vio {
             takeoff_land_srv = nh_.advertiseService("takeoff_land", &Controller::takeoff_land_srv_handle, this);
 
             ctrl_ref_sub = nh_.subscribe("ctrl_ref",10, &Controller::ctrl_ref_cb, this);
+
+            down_ward_lidar_sub = nh_.subscribe("/lidar_pose", &Controller::down_ward_lidar_cb, this);
 
             int result = pthread_create( &ctrl_tid, NULL, &start_controller_loop_thread, this);
             if ( result ) throw result;
@@ -129,6 +133,9 @@ class Controller : public State_Estimate_Vio {
                                         quad_pos_ctrl::SetTakeoffLand::Response& res);
 
         void ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg);
+        
+
+        void down_ward_lidar_cb(const geometry_msgs::PointStamped& msg);
 
     private:
         ros::NodeHandle nh_;
@@ -139,6 +146,7 @@ class Controller : public State_Estimate_Vio {
         cmd_s status_ref;
         bool already_running;
         arm_s arm_status;
+        geometry_msgs::PointStamped downward_lidar_data;
         /* service list */
         ros::ServiceServer arm_srv;
         ros::ServiceServer hoverpos_srv;
@@ -146,11 +154,15 @@ class Controller : public State_Estimate_Vio {
 
         ros::Subscriber ctrl_ref_sub;
 
+        ros::Subscriber down_ward_lidar_sub;
+
         ros::Time last_ctrol_timestamp;
 
         Mavros_Interface mavros_interface;
         
         pthread_mutex_t ctrl_mutex;
+
+        pthread_mutex_t lidar_data_mutex;
 
         int uav_id;
 

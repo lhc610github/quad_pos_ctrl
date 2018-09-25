@@ -176,12 +176,26 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
     float yaw_d = euler(2);
     if (req.takeoff) {
         pos_d << state_now.Pos(0), state_now.Pos(1), -req.takeoff_altitude;
+        set_hover_pos(pos_d,yaw_d);
+        sleep(3);
+        arm_disarm_vehicle(true); // Arm uav
     } else {
-        pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
+        //pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
+        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Poe(2) + 0.5f;
+        ros::Time start_land_task_time = ros::Time::now();
+        ros::Rate land_loop(1.0);
+        while(ros::ok() && ros::Time::now()-start_land_task_time < ros::Duration(5.0)) {
+            pos_d(2) = state_now.Pos(2) + 0.5f;
+            set_hover_pos(pos_d,yaw_d);
+            if (downward_lidar_data.point.z < 0.15 && fabs(state_now.Vel(2)) < 1.0f) {
+                ROS_INFO("detect land: disarm");
+                sleep(1);
+                arm_disarm_vehicle(false); // Arm uav
+                break;
+            }
+            land_loop.sleep();
+        }
     }
-    set_hover_pos(pos_d,yaw_d);
-    sleep(3);
-    arm_disarm_vehicle(req.takeoff);
     res.res = true;
     return true;
 }
@@ -195,6 +209,12 @@ void Controller::ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg) {
     status_ref.yaw_d = msg.yaw_ref;
     status_ref.cmd_mask = msg.ref_mask;
     pthread_mutex_unlock(&ctrl_mutex);
+}
+
+void Controller::down_ward_lidar_cb(const geometry_msgs::PointStamped& msg) {
+    pthread_mutex_lock(&lidar_data_mutex);
+    downward_lidar_data = msg;
+    pthread_mutex_unlock(&lidar_data_mutex);
 }
 
 #ifdef USE_LOGGER
