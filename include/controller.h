@@ -52,7 +52,7 @@ class Controller : public State_Estimate_Vio {
 
             ctrl_ref_sub = nh_.subscribe("ctrl_ref",10, &Controller::ctrl_ref_cb, this);
 
-            down_ward_lidar_sub = nh_.subscribe("/lidar_pose", &Controller::down_ward_lidar_cb, this);
+            down_ward_lidar_sub = nh_.subscribe("/lidar_pose",10, &Controller::down_ward_lidar_cb, this);
 
             int result = pthread_create( &ctrl_tid, NULL, &start_controller_loop_thread, this);
             if ( result ) throw result;
