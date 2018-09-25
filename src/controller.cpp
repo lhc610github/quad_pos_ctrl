@@ -181,7 +181,7 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
         arm_disarm_vehicle(true); // Arm uav
     } else {
         //pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
-        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Poe(2) + 0.5f;
+        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2) + 0.5f;
         ros::Time start_land_task_time = ros::Time::now();
         ros::Rate land_loop(1.0);
         while(ros::ok() && ros::Time::now()-start_land_task_time < ros::Duration(5.0)) {
