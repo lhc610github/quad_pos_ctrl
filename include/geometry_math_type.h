@@ -53,7 +53,7 @@ void get_q_from_dcm(Eigen::Quaterniond &q, const Eigen::Matrix3d &dcm) {
         t = 0.5f / t;
         q.w() = (dcm(1,0) - dcm(0,1)) * t;
         q.x() = (dcm(0,2) + dcm(2,0)) * t;
-        q.z() = (dcm(2,1) + dcm(1,2)) * t;
+        q.y() = (dcm(2,1) + dcm(1,2)) * t;
     }
 }
 
