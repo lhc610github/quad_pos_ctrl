@@ -40,21 +40,34 @@ int main(int argc, char **argv) {
     ctrl_ref_pub.publish(ctrl_ref_msg);
     ROS_INFO("hover1 test");
 
-    sleep(10);
+    sleep(1);
 
-    ctrl_ref_msg.pos_ref[0] = 0.0f;
+    ctrl_ref_msg.header.stamp = ros::Time::now();
+    ctrl_ref_msg.pos_ref[0] = 1.0f;
     ctrl_ref_msg.pos_ref[1] = 0.0f;
-    ctrl_ref_msg.pos_ref[2] = -1.0f;
+    ctrl_ref_msg.pos_ref[2] = -0.7f;
     ctrl_ref_pub.publish(ctrl_ref_msg);
     ROS_INFO("hover2 test");
 
-    sleep(5);
+    sleep(1);
 
+    ctrl_ref_msg.header.stamp = ros::Time::now();
+    ctrl_ref_msg.pos_ref[0] = 0.0f;
+    ctrl_ref_msg.pos_ref[1] = 0.0f;
+    ctrl_ref_msg.pos_ref[2] = -0.7f;
+    ctrl_ref_msg.yaw_ref = -1.0f;
+    ctrl_ref_pub.publish(ctrl_ref_msg);
+    ROS_INFO("hover3 test");
+
+    sleep(100);
+
+    ctrl_ref_msg.header.stamp = ros::Time::now();
     ctrl_ref_msg.pos_ref[0] = 0.0f;
     ctrl_ref_msg.pos_ref[1] = 0.0f;
     ctrl_ref_msg.pos_ref[2] = -0.5f;
+    ctrl_ref_msg.yaw_ref = 0.0f;
     ctrl_ref_pub.publish(ctrl_ref_msg);
-    ROS_INFO("hover3 test");
+    ROS_INFO("hover4 test");
 
     sleep(5);
 

@@ -1,0 +1,8 @@
+<launch>
+      <node pkg="quad_pos_ctrl" type="test_takeoff_node4" name="juliett_takeoff_test"  output="screen">
+        <param name="uav_name" value= "juliett" />
+      </node>
+      <node pkg="quad_pos_ctrl" type="test_takeoff_node4" name="adam_takeoff_test"  output="screen">
+        <param name="uav_name" value= "adam" />
+      </node>
+</launch>

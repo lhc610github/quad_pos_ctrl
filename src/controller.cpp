@@ -175,15 +175,34 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
     get_euler_from_q(euler, state_now.att_q);
     float yaw_d = euler(2);
     if (req.takeoff) {
-        pos_d << state_now.Pos(0), state_now.Pos(1), -req.takeoff_altitude;
+        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2);
         set_hover_pos(pos_d,yaw_d);
-        sleep(3);
+        sleep(2);
+        std::cout << "takeoff process start" << std::endl;
         arm_disarm_vehicle(true); // Arm uav
+        // float Pos_d_z = -req.takeoff_altitude;
+        float Pos_d_z = state_now.Pos(2);
+        float takeoff_vel = 0.5f;
+        float takeoff_ddz = 0.5f / 20.0f;
+        ros::Rate takeoff_loop(20);
+        std::cout << "takeoff altitude: " << req.takeoff_altitude << " m" << std::endl;
+        std::cout << "takeoff velocity: " << takeoff_vel << " m/s"<< std::endl;
+        ros::Time start_takeoff_task_time = ros::Time::now();
+        while(ros::ok() && ros::Time::now() - start_takeoff_task_time < ros::Duration(5.0)) {
+            pos_d(2) = Pos_d_z;
+            set_hover_pos(pos_d,yaw_d);
+            Pos_d_z -= takeoff_ddz;
+            if (Pos_d_z < -req.takeoff_altitude) {
+                std::cout << "takeoff process done" << std::endl;
+                break;
+            }
+            takeoff_loop.sleep();
+        }
     } else {
         //pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
         pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2) + 0.5f;
         ros::Time start_land_task_time = ros::Time::now();
-        ros::Rate land_loop(1.0);
+        ros::Rate land_loop(20.0);
         while(ros::ok() && ros::Time::now()-start_land_task_time < ros::Duration(5.0)) {
             pos_d(2) = state_now.Pos(2) + 0.5f;
             set_hover_pos(pos_d,yaw_d);
@@ -219,20 +238,20 @@ void Controller::down_ward_lidar_cb(const geometry_msgs::PointStamped& msg) {
 
 #ifdef USE_LOGGER
 void Controller::start_logger(const ros::Time & t, const int &id) {
-    std::string logger_file_name("/home/nuc/pos_ctrl_ws/src/quad_pos_ctrl/src/logger/");
-    logger_file_name += "UAV_";
-    logger_file_name += std::to_string(id);
-    logger_file_name += "/ctrl_logger";
+    // std::string logger_file_name("/home/lhc/gazebo_simulate_logger/");
+    std::string temp_file_name = logger_file_name + "UAV_";
+    temp_file_name += std::to_string(id);
+    temp_file_name += "/ctrl_logger";
     /*char data[20];
     sprintf(data, "%lu", t.toNSec());
     logger_file_name += data;*/
-    logger_file_name += getTime_string();
-    logger_file_name += ".csv";
-    std::cout << "controller logger: "<< logger_file_name << std::endl;
+    temp_file_name += getTime_string();
+    temp_file_name += ".csv";
+    std::cout << "controller logger: "<< temp_file_name << std::endl;
     if (ctrl_logger.is_open()) {
         ctrl_logger.close();
     }
-    ctrl_logger.open(logger_file_name.c_str(), std::ios::out);
+    ctrl_logger.open(temp_file_name.c_str(), std::ios::out);
     if (!ctrl_logger.is_open()) {
         std::cout << "cannot open the logger." << std::endl;
     } else {

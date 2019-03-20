@@ -77,19 +77,24 @@ class State_Estimate_Vio{
         nh_("~state_estimate"),
         rigidbody_id_(id){
 
-            char * pos_topic_channel = new char[sizeof("/vio_data_rigid1/pos")];
-            strcpy(pos_topic_channel,"/vio_data_rigid1/pos");
-            char * vel_topic_channel = new char[sizeof("/vio_data_rigid1/vel")];
-            strcpy(vel_topic_channel,"/vio_data_rigid1/vel");
-            char * acc_topic_channel = new char[sizeof("/vio_data_rigid1/acc")];
-            strcpy(acc_topic_channel,"/vio_data_rigid1/acc");
-            char * att_topic_channel = new char[sizeof("/vio_data_rigid1/att")];
-            strcpy(att_topic_channel,"/vio_data_rigid1/att");
+            std::string parent_topic_name = "/vio_data_rigid";
 
-            std::cout << pos_topic_channel << std::endl;
-            std::cout << vel_topic_channel << std::endl;
-            std::cout << acc_topic_channel << std::endl;
-            std::cout << att_topic_channel << std::endl;
+            std::string pos_topic_channel = parent_topic_name + std::to_string(id);
+            pos_topic_channel += "/pos";
+
+            std::string vel_topic_channel = parent_topic_name + std::to_string(id);
+            vel_topic_channel += "/vel";
+
+            std::string acc_topic_channel = parent_topic_name + std::to_string(id);
+            acc_topic_channel += "/acc";
+
+            std::string att_topic_channel = parent_topic_name + std::to_string(id);
+            att_topic_channel += "/att";
+
+            std::cout << "pos topic name:" << pos_topic_channel << std::endl;
+            std::cout << "vel topic name:" << vel_topic_channel << std::endl;
+            std::cout << "acc topic name:" << acc_topic_channel << std::endl;
+            std::cout << "att topic name:" << att_topic_channel << std::endl;
 
             pos_sub_ = nh_.subscribe(pos_topic_channel,10,&State_Estimate_Vio::vio_pos_data_cb,this);
             vel_sub_ = nh_.subscribe(vel_topic_channel,10,&State_Estimate_Vio::vio_vel_data_cb,this);

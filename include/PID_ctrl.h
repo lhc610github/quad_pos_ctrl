@@ -110,6 +110,8 @@ class PID_ctrl {
             std::cout<< "vel limit in z(m/s) :" << ctrl_limit.vel_z_limit << std::endl;
             std::cout<< "acc limit in xy(m/s^2):" << ctrl_limit.acc_xy_limit << std::endl;
             std::cout<< "acc limit in z(m/s^2) :" << ctrl_limit.acc_z_limit << std::endl;
+
+            nh.param<std::string>("/PID_logger_file_name", logger_file_name, "/home/lhc/gazebo_simulate_logger/");
             /*ctrl_limit.vel_xy_limit = 1.0f;
             ctrl_limit.vel_z_limit = 1.0f;
             ctrl_limit.acc_xy_limit = 5.0f;
@@ -180,20 +182,20 @@ class PID_ctrl {
 
 #ifdef USE_LOGGER
         void start_logger(const ros::Time &t, const int &id) {
-            std::string logger_file_name("/home/nuc/pos_ctrl_ws/src/quad_pos_ctrl/src/logger/");
-            logger_file_name += "UAV_";
-            logger_file_name += std::to_string(id);
-            logger_file_name += "/PID_logger";
+            // std::string logger_file_name("/home/lhc/gazebo_simulate_logger/");
+            std::string temp_file_name = logger_file_name + "UAV_";
+            temp_file_name += std::to_string(id);
+            temp_file_name += "/PID_logger";
             /*char data[20];
             sprintf(data, "%lu", t.toNSec());
             logger_file_name += data;*/
-            logger_file_name += getTime_string();
-            logger_file_name += ".csv";
+            temp_file_name += getTime_string();
+            temp_file_name += ".csv";
             if (logger.is_open()) {
                 logger.close();
             }
-            logger.open(logger_file_name.c_str(), std::ios::out);
-            std::cout << "PID logger: "<< logger_file_name << std::endl;
+            logger.open(temp_file_name.c_str(), std::ios::out);
+            std::cout << "PID logger: "<< temp_file_name << std::endl;
             if (!logger.is_open()) {
                 std::cout << "cannot open the logger." << std::endl;
             } else {
@@ -525,6 +527,7 @@ class PID_ctrl {
         int uav_id;
 #ifdef USE_LOGGER
         std::ofstream logger;
+        std::string logger_file_name;
 #endif
 }; 
 

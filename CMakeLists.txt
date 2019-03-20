@@ -175,6 +175,7 @@ add_executable(test_pub_node test/test_pub_node.cpp)
 add_executable(test_takeoff_node test/test_takeoff_node.cpp)
 add_executable(test_takeoff_node2 test/test_takeoff_node2.cpp)
 add_executable(test_takeoff_node3 test/test_takeoff_node3.cpp)
+add_executable(test_takeoff_node4 test/test_takeoff_node4.cpp)
 #add_executable(test_sample_mocap test/test_sample_mocap.cpp)
 #add_executable(linear_optimal_test test/linear_optimal_test.cpp)
 #add_executable(nonlinear_optimal_test2 test/nonlinear_optimal_test2.cpp)
@@ -213,6 +214,10 @@ target_link_libraries(test_takeoff_node2
 )
 
 target_link_libraries(test_takeoff_node3
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(test_takeoff_node4
   ${catkin_LIBRARIES}
 )
 
