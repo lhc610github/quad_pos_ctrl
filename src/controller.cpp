@@ -175,20 +175,20 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
     get_euler_from_q(euler, state_now.att_q);
     float yaw_d = euler(2);
     if (req.takeoff) {
-        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2);
+        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2) + 0.2f;
         set_hover_pos(pos_d,yaw_d);
-        sleep(2);
         std::cout << "takeoff process start" << std::endl;
         arm_disarm_vehicle(true); // Arm uav
+        sleep(1);
         // float Pos_d_z = -req.takeoff_altitude;
         float Pos_d_z = state_now.Pos(2);
-        float takeoff_vel = 0.5f;
-        float takeoff_ddz = 0.5f / 20.0f;
+        float takeoff_vel = 0.8f;
+        float takeoff_ddz = takeoff_vel / 20.0f;
         ros::Rate takeoff_loop(20);
         std::cout << "takeoff altitude: " << req.takeoff_altitude << " m" << std::endl;
         std::cout << "takeoff velocity: " << takeoff_vel << " m/s"<< std::endl;
         ros::Time start_takeoff_task_time = ros::Time::now();
-        while(ros::ok() && ros::Time::now() - start_takeoff_task_time < ros::Duration(5.0)) {
+        while(ros::ok() && ros::Time::now() - start_takeoff_task_time < ros::Duration(8.0)) {
             pos_d(2) = Pos_d_z;
             set_hover_pos(pos_d,yaw_d);
             Pos_d_z -= takeoff_ddz;
@@ -200,15 +200,21 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
         }
     } else {
         //pos_d << state_now.Pos(0), state_now.Pos(1), 0.0f;
-        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2) + 0.5f;
+        pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2);// + 0.5f;
         ros::Time start_land_task_time = ros::Time::now();
         ros::Rate land_loop(20.0);
-        while(ros::ok() && ros::Time::now()-start_land_task_time < ros::Duration(5.0)) {
-            pos_d(2) = state_now.Pos(2) + 0.5f;
+        float temp_Pos_d_z = state_now.Pos(2);
+        while(ros::ok() && ros::Time::now()-start_land_task_time < ros::Duration(8.0)) {
+            temp_Pos_d_z += 0.3f/20.0f;
+            pos_d(2) = temp_Pos_d_z;
             set_hover_pos(pos_d,yaw_d);
-            if (downward_lidar_data.point.z < 0.15 && fabs(state_now.Vel(2)) < 1.0f) {
+            state_now = get_state();
+            pthread_mutex_lock(&lidar_data_mutex);
+            float temp_lidar_z = downward_lidar_data.point.z;
+            pthread_mutex_unlock(&lidar_data_mutex);
+            if (temp_lidar_z < 0.25f && fabs(state_now.Vel(2)) < 1.0f) {
                 ROS_INFO("detect land: disarm");
-                sleep(1);
+                // sleep(1);
                 arm_disarm_vehicle(false); // Arm uav
                 break;
             }

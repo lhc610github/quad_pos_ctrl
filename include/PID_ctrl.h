@@ -281,8 +281,8 @@ class PID_ctrl {
                     res.y_int_saturate = true;
                 }
                 float temp_z = fabsf(v(2));
-                if (temp_z > (ctrl_limit.acc_z_limit/3.0f)) {
-                    v(2) = v(2) / temp_z * ctrl_limit.acc_z_limit/3.0f;
+                if (temp_z > (ctrl_limit.acc_z_limit/2.0f)) {
+                    v(2) = v(2) / temp_z * ctrl_limit.acc_z_limit/2.0f;
                     res.z_int_positive = v(2)>0? true:false;
                     res.z_int_saturate = true;
                 }
