@@ -65,11 +65,24 @@ void Controller::one_step() {
         }
 }
 
-Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &ctrl_res) {
+Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &in_ctrl_res) {
+    PID_ctrl<cmd_s, State_s>::res_s ctrl_res = in_ctrl_res;
     U_s res;  
     res.header = ctrl_res.header;
     float _yaw_d = status_ref.yaw_d;
     if (ros::Time::now() - ctrl_res.header < ros::Duration(0.5f)) {
+
+        double tilt_max = 30.0f / 180.0f * M_PI;
+        double thrust_xy_len = sqrtf(ctrl_res.res(0) * ctrl_res.res(0) + ctrl_res.res(1) * ctrl_res.res(1));
+        if (thrust_xy_len > 0.01f) {
+            double thrust_xy_max = -ctrl_res.res(2) * tanf(tilt_max);
+            if (thrust_xy_len > thrust_xy_max) {
+                double k = thrust_xy_max / thrust_xy_len;
+                ctrl_res.res(0) *= k;
+                ctrl_res.res(1) *= k;
+            }
+        }
+
         /* get R */
         Eigen::Matrix3d _R;
         get_dcm_from_q(_R, get_state().att_q); 
@@ -97,7 +110,7 @@ Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &
             }
             _body_x = _body_x.normalized();
         } else {
-            _body_x << 0.0f , 0.0f , 1.0f;
+            _body_x << 1.0f , 0.0f , 0.0f;
         }
 
         /* get body_y */
