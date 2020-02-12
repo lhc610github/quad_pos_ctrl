@@ -23,7 +23,7 @@ class Mavros_Interface {
             std::string base_name = "/mavros";
             char id_str[10];
             sprintf(id_str, "%d", id);
-            base_name += id_str;
+            //base_name += id_str;
 
             std::string att_target_pub_name;
             att_target_pub_name = base_name + "/setpoint_raw/attitude";

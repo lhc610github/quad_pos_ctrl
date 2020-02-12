@@ -2,22 +2,22 @@
 #include "ros/ros.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "quad_pos_ctrl/SetTakeoffLand.h"
-#include "quad_pos_ctrl/ctrl_ref.h"
+#include "ctrl_msg/SetTakeoffLand.h"
+#include "ctrl_msg/ctrl_ref.h"
 #include <math.h>
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "test_takeoff_node3");
     ros::NodeHandle node;
     ros::ServiceClient takeoff_land_srv[5];
-    takeoff_land_srv[0] = node.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node1/controller/takeoff_land");
-    takeoff_land_srv[1] = node.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node2/controller/takeoff_land");
-    takeoff_land_srv[2] = node.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node3/controller/takeoff_land");
-    takeoff_land_srv[3] = node.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node4/controller/takeoff_land");
-    takeoff_land_srv[4] = node.serviceClient<quad_pos_ctrl::SetTakeoffLand>("/quad_pos_ctrl_node5/controller/takeoff_land");
-    //ros::Publisher ctrl_ref_pub = node.advertise<quad_pos_ctrl::ctrl_ref>("/quad_pos_ctrl_node3/controller/ctrl_ref",10);
+    takeoff_land_srv[0] = node.serviceClient<ctrl_msg::SetTakeoffLand>("/quad_pos_ctrl_node1/controller/takeoff_land");
+    takeoff_land_srv[1] = node.serviceClient<ctrl_msg::SetTakeoffLand>("/quad_pos_ctrl_node2/controller/takeoff_land");
+    takeoff_land_srv[2] = node.serviceClient<ctrl_msg::SetTakeoffLand>("/quad_pos_ctrl_node3/controller/takeoff_land");
+    takeoff_land_srv[3] = node.serviceClient<ctrl_msg::SetTakeoffLand>("/quad_pos_ctrl_node4/controller/takeoff_land");
+    takeoff_land_srv[4] = node.serviceClient<ctrl_msg::SetTakeoffLand>("/quad_pos_ctrl_node5/controller/takeoff_land");
+    //ros::Publisher ctrl_ref_pub = node.advertise<ctrl_msg::ctrl_ref>("/quad_pos_ctrl_node3/controller/ctrl_ref",10);
 
-    quad_pos_ctrl::SetTakeoffLand set_takeoff_land;
+    ctrl_msg::SetTakeoffLand set_takeoff_land;
     set_takeoff_land.request.takeoff = true;
     set_takeoff_land.request.takeoff_altitude = 0.8f;
     ROS_INFO("takeoff test");

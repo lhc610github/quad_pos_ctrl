@@ -10,11 +10,11 @@
 #include "geometry_math_type.h"
 
 // srv
-#include "quad_pos_ctrl/SetArm.h"
-#include "quad_pos_ctrl/SetHover.h"
-#include "quad_pos_ctrl/SetTakeoffLand.h"
+#include "ctrl_msg/SetArm.h"
+#include "ctrl_msg/SetHover.h"
+#include "ctrl_msg/SetTakeoffLand.h"
 // msg
-#include "quad_pos_ctrl/ctrl_ref.h"
+#include "ctrl_msg/ctrl_ref.h"
 #include "geometry_msgs/PointStamped.h"
 
 #include <Eigen/Core>
@@ -52,7 +52,9 @@ class Controller : public State_Estimate_Vio {
 
             ctrl_ref_sub = nh_.subscribe("ctrl_ref",10, &Controller::ctrl_ref_cb, this);
 
-            down_ward_lidar_sub = nh_.subscribe("/lidar_pose",10, &Controller::down_ward_lidar_cb, this);
+            //down_ward_lidar_sub = nh_.subscribe("/lidar_pose",10, &Controller::down_ward_lidar_cb, this);
+            
+			down_ward_lidar_sub = nh_.subscribe("/lidar_ukf",10, &Controller::down_ward_lidar_cb, this);
 
             nh_.param<std::string>("/controller_logger_file_name",  logger_file_name, "/home/lhc/gazebo_simulate_logger/");
 
@@ -125,16 +127,16 @@ class Controller : public State_Estimate_Vio {
             }
         }
 
-        bool arm_disarm_srv_handle(quad_pos_ctrl::SetArm::Request& req,
-                                    quad_pos_ctrl::SetArm::Response& res);
+        bool arm_disarm_srv_handle(ctrl_msg::SetArm::Request& req,
+                                    ctrl_msg::SetArm::Response& res);
 
-        bool hover_pos_srv_handle(quad_pos_ctrl::SetHover::Request& req,
-                                    quad_pos_ctrl::SetHover::Response& res);
+        bool hover_pos_srv_handle(ctrl_msg::SetHover::Request& req,
+                                    ctrl_msg::SetHover::Response& res);
 
-        bool takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request& req,
-                                        quad_pos_ctrl::SetTakeoffLand::Response& res);
+        bool takeoff_land_srv_handle(ctrl_msg::SetTakeoffLand::Request& req,
+                                        ctrl_msg::SetTakeoffLand::Response& res);
 
-        void ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg);
+        void ctrl_ref_cb(const ctrl_msg::ctrl_ref& msg);
         
 
         void down_ward_lidar_cb(const geometry_msgs::PointStamped& msg);

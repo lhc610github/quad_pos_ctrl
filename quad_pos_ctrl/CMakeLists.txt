@@ -12,9 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  message_runtime
-  message_generation
   mavros
+	ctrl_msg
 #  mav_trajectory_generation
 #  mav_trajectory_generation_ros
 )
@@ -60,27 +59,6 @@ endif()
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   ctrl_ref.msg
-   factors.msg
-   segments.msg
-   trajectorys.msg
-#   Message1.msg
-#   Message2.msg
-)
-
-## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   SetArm.srv
-   SetHover.srv
-   SetTakeoffLand.srv
-#   Service1.srv
-#   Service2.srv
-)
-
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -90,11 +68,11 @@ endif()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   geometry_msgs
-   std_msgs
-)
+#generate_messages(
+   #DEPENDENCIES
+   #geometry_msgs
+   #std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -128,7 +106,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES quad_pos_ctrl
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros 
+  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros ctrl_msg
 #  mav_trajectory_generation mav_trajectory_generation_ros
 #  DEPENDS system_lib
 )

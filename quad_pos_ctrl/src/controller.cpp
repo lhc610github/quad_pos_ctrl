@@ -163,16 +163,16 @@ void Controller::set_hover_pos(const Eigen::Vector3d & pos, const float & yaw) {
     pthread_mutex_unlock(&ctrl_mutex);
 }
 
-bool Controller::arm_disarm_srv_handle(quad_pos_ctrl::SetArm::Request& req,
-                                    quad_pos_ctrl::SetArm::Response& res){
+bool Controller::arm_disarm_srv_handle(ctrl_msg::SetArm::Request& req,
+                                    ctrl_msg::SetArm::Response& res){
     bool arm_req = req.armed;
     arm_disarm_vehicle(arm_req);
     res.res = true;
     return true;
 }
 
-bool Controller::hover_pos_srv_handle(quad_pos_ctrl::SetHover::Request& req,
-                                    quad_pos_ctrl::SetHover::Response& res){
+bool Controller::hover_pos_srv_handle(ctrl_msg::SetHover::Request& req,
+                                    ctrl_msg::SetHover::Response& res){
     Eigen::Vector3d pos_d;
     pos_d << req.x_ned, req.y_ned, req.z_ned;
     float yaw_d = req.yaw;
@@ -180,8 +180,8 @@ bool Controller::hover_pos_srv_handle(quad_pos_ctrl::SetHover::Request& req,
     res.res = true;
     return true;
 }
-bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request& req,
-                                        quad_pos_ctrl::SetTakeoffLand::Response& res) {
+bool Controller::takeoff_land_srv_handle(ctrl_msg::SetTakeoffLand::Request& req,
+                                        ctrl_msg::SetTakeoffLand::Response& res) {
     Eigen::Vector3d pos_d; 
     State_s state_now = get_state();
     Eigen::Vector3d euler;
@@ -238,7 +238,7 @@ bool Controller::takeoff_land_srv_handle(quad_pos_ctrl::SetTakeoffLand::Request&
     return true;
 }
 
-void Controller::ctrl_ref_cb(const quad_pos_ctrl::ctrl_ref& msg) {
+void Controller::ctrl_ref_cb(const ctrl_msg::ctrl_ref& msg) {
     pthread_mutex_lock(&ctrl_mutex);
     status_ref.header = msg.header.stamp;
     status_ref.pos_d << msg.pos_ref[0], msg.pos_ref[1], msg.pos_ref[2];
