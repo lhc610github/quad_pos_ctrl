@@ -86,6 +86,7 @@ class Controller : public State_Estimate_Vio {
 
         typedef struct ctrl_cmd {
             ros::Time header;
+			bool valid;
             Eigen::Vector3d pos_d;
             Eigen::Vector3d vel_d;
             Eigen::Vector3d acc_d;
@@ -98,6 +99,7 @@ class Controller : public State_Estimate_Vio {
                 acc_d = Eigen::Vector3d::Zero();
                 yaw_d = 0.0f;
                 cmd_mask = 0;
+				valid = false;
             }
         }cmd_s;
 
@@ -144,8 +146,8 @@ class Controller : public State_Estimate_Vio {
     private:
         ros::NodeHandle nh_;
         void controller_loop();
-        void one_step();
-        U_s cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &ctrl_res);
+        void one_step(const cmd_s &_ref);
+        U_s cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &ctrl_res, const cmd_s &_ref);
         pthread_t ctrl_tid;
         cmd_s status_ref;
         bool already_running;

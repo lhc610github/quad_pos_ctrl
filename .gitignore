@@ -1,2 +1,2 @@
-/src/logger/*csv
-/src/logger/UAV_*/*csv
+quad_pos_ctrl/src/logger/*csv
+quad_pos_ctrl/src/logger/UAV_*/*csv

@@ -6,21 +6,33 @@ void Controller::controller_loop() {
     ros::Rate ctrl_rate(100);
     ROS_INFO("controller run at 100Hz");
     status_ref.header = ros::Time::now();
-    status_ref.pos_d << 10.0f, 0.0f, -0.5f;
+    status_ref.pos_d << 0.0f, 0.0f, 0.0f;
+	status_ref.yaw_d = 0.0f;
     status_ref.cmd_mask = P_C_V;
     while (ros::ok()) {
-        if (ros::Time::now() - get_state().header < ros::Duration(0.5f)) {
-            one_step(); 
+        if (ros::Time::now() - get_state().header < ros::Duration(1.0f)) {
+			pthread_mutex_lock(&ctrl_mutex);			
+			cmd_s tmp_ref = status_ref;
+			pthread_mutex_unlock(&ctrl_mutex);
+			State_s state_now = get_state();
+			if (!tmp_ref.valid) {
+				//ctrl_core.reset();
+				tmp_ref.pos_d << state_now.Pos(0), state_now.Pos(1), state_now.Pos(2)+0.1f;
+				Eigen::Vector3d euler;
+				get_euler_from_q(euler, state_now.att_q);
+				tmp_ref.yaw_d = euler(2);
+			}
+            one_step(tmp_ref); 
         } else {
             ROS_INFO_THROTTLE(1.0,"State Timeout");
             ctrl_core.reset();
         }
-        ctrl_rate.sleep();
-        //usleep(10000);
+        //ctrl_rate.sleep();
+        usleep(8000);
     }
 }
 
-void Controller::one_step() {
+void Controller::one_step(const cmd_s &_ref) {
         /*check arm status*/
         bool arm_state = false;
         bool ofb_enable = false;
@@ -32,16 +44,16 @@ void Controller::one_step() {
         arm_status.armed = (arm_state && ofb_enable);
         pthread_mutex_unlock(&ctrl_mutex);
 
-        pthread_mutex_lock(&ctrl_mutex);
-        ctrl_core.set_ref(status_ref);
+        //pthread_mutex_lock(&ctrl_mutex);
+        ctrl_core.set_ref(_ref);
         bool has_armed = arm_status.armed;
-        pthread_mutex_unlock(&ctrl_mutex);
+        //pthread_mutex_unlock(&ctrl_mutex);
         if (has_armed) {
             PID_ctrl<cmd_s,State_s>::res_s ctrl_res;
             ctrl_core.run(get_state(), ctrl_res);
             //std::cout << ctrl_res.res.transpose() << std::endl;
-            U_s U = cal_Rd_thrust(ctrl_res);
-            if ((ros::Time::now() - last_ctrol_timestamp) > ros::Duration(0.019)) {
+            U_s U = cal_Rd_thrust(ctrl_res, _ref);
+            if ((ros::Time::now() - last_ctrol_timestamp) > ros::Duration(0.015)) {
                 mavros_interface.pub_att_thrust_cmd(U.q_d,U.U1);
                 last_ctrol_timestamp = ros::Time::now();
             }
@@ -65,11 +77,11 @@ void Controller::one_step() {
         }
 }
 
-Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &in_ctrl_res) {
+Controller::U_s Controller::cal_Rd_thrust(const PID_ctrl<cmd_s,State_s>::res_s &in_ctrl_res, const cmd_s &_ref) {
     PID_ctrl<cmd_s, State_s>::res_s ctrl_res = in_ctrl_res;
     U_s res;  
     res.header = ctrl_res.header;
-    float _yaw_d = status_ref.yaw_d;
+    float _yaw_d = _ref.yaw_d;
     if (ros::Time::now() - ctrl_res.header < ros::Duration(0.5f)) {
 
         double tilt_max = 30.0f / 180.0f * M_PI;
@@ -157,6 +169,7 @@ void Controller::arm_disarm_vehicle(const bool & arm) {
 void Controller::set_hover_pos(const Eigen::Vector3d & pos, const float & yaw) {
     pthread_mutex_lock(&ctrl_mutex);
     status_ref.header = ros::Time::now();
+	status_ref.valid = true;
     status_ref.pos_d = pos;
     status_ref.yaw_d = yaw;
     status_ref.cmd_mask = P_C_V;
@@ -240,6 +253,7 @@ bool Controller::takeoff_land_srv_handle(ctrl_msg::SetTakeoffLand::Request& req,
 
 void Controller::ctrl_ref_cb(const ctrl_msg::ctrl_ref& msg) {
     pthread_mutex_lock(&ctrl_mutex);
+	status_ref.valid = true;
     status_ref.header = msg.header.stamp;
     status_ref.pos_d << msg.pos_ref[0], msg.pos_ref[1], msg.pos_ref[2];
     status_ref.vel_d << msg.vel_ref[0], msg.vel_ref[1], msg.vel_ref[2];
