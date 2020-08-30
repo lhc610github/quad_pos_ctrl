@@ -141,7 +141,7 @@ class Controller : public State_Estimate_Vio {
         void ctrl_ref_cb(const ctrl_msg::ctrl_ref& msg);
         
 
-        void down_ward_lidar_cb(const geometry_msgs::PointStamped& msg);
+        void down_ward_lidar_cb(const geometry_msgs::PointStampedPtr msg);
 
     private:
         ros::NodeHandle nh_;

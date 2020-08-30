@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   mavros
 	ctrl_msg
+        nodelet
 #  mav_trajectory_generation
 #  mav_trajectory_generation_ros
 )
@@ -106,7 +107,7 @@ endif()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES quad_pos_ctrl
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros ctrl_msg
+  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros ctrl_msg nodelet
 #  mav_trajectory_generation mav_trajectory_generation_ros
 #  DEPENDS system_lib
 )
@@ -137,6 +138,16 @@ add_library(quad_pos_ctrl
   src/controller.cpp
 )
 
+add_library(ctrl_nodelet
+        src/CtrlNodeletClass.cpp)
+
+target_link_libraries(ctrl_nodelet
+        quad_pos_ctrl
+        ${catkin_LIBRARIES})
+
+if(catkin_EXPORTED_LIBRARIES)
+  add_dependencies(ctrl_nodelet ${catkin_EXPORTED_LIBRARIES})
+endif()
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure

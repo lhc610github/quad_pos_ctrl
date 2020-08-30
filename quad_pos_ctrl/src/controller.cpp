@@ -263,9 +263,9 @@ void Controller::ctrl_ref_cb(const ctrl_msg::ctrl_ref& msg) {
     pthread_mutex_unlock(&ctrl_mutex);
 }
 
-void Controller::down_ward_lidar_cb(const geometry_msgs::PointStamped& msg) {
+void Controller::down_ward_lidar_cb(const geometry_msgs::PointStampedPtr msg) {
     pthread_mutex_lock(&lidar_data_mutex);
-    downward_lidar_data = msg;
+    downward_lidar_data = *msg;
     pthread_mutex_unlock(&lidar_data_mutex);
 }
 

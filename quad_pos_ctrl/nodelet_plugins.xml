@@ -1,0 +1,7 @@
+<library path="lib/libctrl_nodelet">
+    <class name="quad_pos_ctrl/CtrlNodeletClass" type="ctrl_namespace::CtrlNodeletClass" base_class_type="nodelet::Nodelet">
+        <description>
+            ctrl nodelet.
+        </description>
+    </class>
+</library>
