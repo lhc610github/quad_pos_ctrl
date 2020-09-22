@@ -4,7 +4,7 @@
 #define USE_LOGGER 1
 
 #include "state_estimate_vio.h"
-#include "mavros_interface.h"
+#include "dji_interface.h"
 //#include <boost/thread.hpp>
 #include "PID_ctrl.h"
 #include "geometry_math_type.h"
@@ -37,7 +37,7 @@ class Controller : public State_Estimate_Vio {
 
         Controller (int rigid_id):
         State_Estimate_Vio(rigid_id),
-        mavros_interface(rigid_id),
+        dji_interface(rigid_id),
         ctrl_core(rigid_id),
         uav_id(rigid_id),
         nh_("~controller") {
@@ -164,7 +164,7 @@ class Controller : public State_Estimate_Vio {
 
         ros::Time last_ctrol_timestamp;
 
-        Mavros_Interface mavros_interface;
+        DJI_Interface dji_interface;
         
         pthread_mutex_t ctrl_mutex;
 

@@ -23,17 +23,40 @@ int main(int argc, char **argv) {
     set_takeoff_land.request.takeoff_altitude = 1.3f;
     takeoff_land_srv.call(set_takeoff_land);
     ROS_INFO("takeoff test");
-    sleep(35);
+    sleep(15);
 
-    /*ctrl_msg::ctrl_ref ctrl_ref_msg;
+
+    ctrl_msg::ctrl_ref ctrl_ref_msg;
     ctrl_ref_msg.header.stamp = ros::Time::now();
     ctrl_ref_msg.pos_ref[0] = 0.0f;
-    ctrl_ref_msg.pos_ref[1] = 2.0f;
+    ctrl_ref_msg.pos_ref[1] = 0.0f;
     ctrl_ref_msg.pos_ref[2] = -1.3f;
-    ctrl_ref_msg.yaw_ref = 0.0f;
+    ctrl_ref_msg.yaw_ref = 1.4f;
     ctrl_ref_msg.ref_mask = ctrl_msg::ctrl_ref::POS_CTRL_VALIED;
     ctrl_ref_pub.publish(ctrl_ref_msg);
     ROS_INFO("hover1 test");
+
+    sleep(3); 
+
+
+    ctrl_ref_msg.header.stamp = ros::Time::now();
+    ctrl_ref_msg.pos_ref[0] = 0.0f;
+    ctrl_ref_msg.pos_ref[1] = 1.0f;
+    ctrl_ref_msg.pos_ref[2] = -1.3f;
+    ctrl_ref_msg.yaw_ref = -1.4f;
+    ctrl_ref_msg.ref_mask = ctrl_msg::ctrl_ref::POS_CTRL_VALIED;
+    ctrl_ref_pub.publish(ctrl_ref_msg);
+    ROS_INFO("hover1 test");
+
+    sleep(10);    
+    ctrl_ref_msg.header.stamp = ros::Time::now();
+    ctrl_ref_msg.pos_ref[0] = 1.0f;
+    ctrl_ref_msg.pos_ref[1] = -1.0f;
+    ctrl_ref_msg.pos_ref[2] = -1.3f;
+    ctrl_ref_msg.yaw_ref = 1.4f;
+    ctrl_ref_msg.ref_mask = ctrl_msg::ctrl_ref::POS_CTRL_VALIED;
+    ctrl_ref_pub.publish(ctrl_ref_msg);
+    ROS_INFO("hover2 test");
 
     sleep(10);
 
@@ -41,12 +64,12 @@ int main(int argc, char **argv) {
     ctrl_ref_msg.pos_ref[0] = 0.0f;
     ctrl_ref_msg.pos_ref[1] = 0.0f;
     ctrl_ref_msg.pos_ref[2] = -1.3f;
-    ctrl_ref_msg.yaw_ref = 0.0f;
+    ctrl_ref_msg.yaw_ref = 0.7f;
     ctrl_ref_msg.ref_mask = ctrl_msg::ctrl_ref::POS_CTRL_VALIED;
     ctrl_ref_pub.publish(ctrl_ref_msg);
     ROS_INFO("hover2 test");
 
-    sleep(10);*/
+    sleep(10);
     //sleep(5);
 
     // sleep(5);

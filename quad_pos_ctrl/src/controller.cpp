@@ -37,7 +37,7 @@ void Controller::one_step(const cmd_s &_ref) {
         bool arm_state = false;
         bool ofb_enable = false;
         ros::Time arm_state_timestamp;
-        mavros_interface.get_status(arm_state,ofb_enable,arm_state_timestamp);
+        dji_interface.get_status(arm_state,ofb_enable,arm_state_timestamp);
 
         pthread_mutex_lock(&ctrl_mutex);
         arm_status.header = ros::Time::now();
@@ -54,7 +54,7 @@ void Controller::one_step(const cmd_s &_ref) {
             //std::cout << ctrl_res.res.transpose() << std::endl;
             U_s U = cal_Rd_thrust(ctrl_res, _ref);
             if ((ros::Time::now() - last_ctrol_timestamp) > ros::Duration(0.015)) {
-                mavros_interface.pub_att_thrust_cmd(U.q_d,U.U1);
+                dji_interface.pub_att_thrust_cmd(U.q_d,U.U1);
                 last_ctrol_timestamp = ros::Time::now();
             }
 
@@ -73,7 +73,7 @@ void Controller::one_step(const cmd_s &_ref) {
 #endif
         } else {
             ctrl_core.reset();
-            mavros_interface.pub_att_thrust_cmd(Eigen::Quaterniond::Identity(),0.0f);
+            dji_interface.pub_att_thrust_cmd(Eigen::Quaterniond::Identity(),0.0f);
         }
 }
 
@@ -150,12 +150,12 @@ void Controller::arm_disarm_vehicle(const bool & arm) {
 #ifdef USE_LOGGER
             start_logger(ros::Time::now(),uav_id);
 #endif
-        if (mavros_interface.set_arm_and_offboard()) {
+        if (dji_interface.set_arm_and_offboard()) {
             ROS_INFO("done!");
         }
     } else {
         ROS_INFO("vehicle will be disarmed!");
-        if (mavros_interface.set_disarm()) {
+        if (dji_interface.set_disarm()) {
             ROS_INFO("done!");
         }
 #ifdef USE_LOGGER
@@ -238,7 +238,7 @@ bool Controller::takeoff_land_srv_handle(ctrl_msg::SetTakeoffLand::Request& req,
             pthread_mutex_lock(&lidar_data_mutex);
             float temp_lidar_z = downward_lidar_data.point.z;
             pthread_mutex_unlock(&lidar_data_mutex);
-            if (temp_lidar_z < 0.25f && fabs(state_now.Vel(2)) < 1.0f) {
+            if (state_now.Pos(2) > -0.15f && fabs(state_now.Vel(2)) < 1.0f) {
                 ROS_INFO("detect land: disarm");
                 // sleep(1);
                 arm_disarm_vehicle(false); // Arm uav

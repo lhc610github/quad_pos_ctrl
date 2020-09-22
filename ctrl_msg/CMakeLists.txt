@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ctrl_msg)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -12,9 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  message_runtime
   message_generation
-  mavros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -28,7 +23,7 @@ if(NOT EIGEN3_FOUND)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
   set(EIGEN3_LIBRARIES ${EIGEN_LIBRARIES})
 endif()
-
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -122,7 +117,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ctrl_msg
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros 
+  CATKIN_DEPENDS message_runtime geometry_msgs roscpp rospy std_msgs
 #  mav_trajectory_generation mav_trajectory_generation_ros
 #  DEPENDS system_lib
 )

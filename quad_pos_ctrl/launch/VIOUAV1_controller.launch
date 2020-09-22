@@ -1,6 +1,6 @@
 <launch>
-<param name="/controller_logger_file_name" value = "$(find quad_pos_ctrl)/src/logger/" />
-<param name="/PID_logger_file_name" value = "$(find quad_pos_ctrl)/src/logger/" />
+<param name="/controller_logger_file_name" value = "$(find quad_pos_ctrl)/logger/" />
+<param name="/PID_logger_file_name" value = "$(find quad_pos_ctrl)/logger/" />
     <node pkg="quad_pos_ctrl" type="quad_pos_ctrl_node" name="vio_test_pos_ctrl_node" clear_params="true" output="screen">
         <param name="/uav_id" value= "1" />
         <param name="/PID/hover_thrust" value= "0.4"/>

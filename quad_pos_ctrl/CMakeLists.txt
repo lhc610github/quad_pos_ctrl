@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(quad_pos_ctrl)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+#add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,10 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  mavros
+  dji_sdk
 	ctrl_msg
-#  mav_trajectory_generation
-#  mav_trajectory_generation_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -29,6 +27,8 @@ if(NOT EIGEN3_FOUND)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
   set(EIGEN3_LIBRARIES ${EIGEN_LIBRARIES})
 endif()
+
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -106,7 +106,7 @@ endif()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES quad_pos_ctrl
-  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs mavros ctrl_msg
+#  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs dji_sdk ctrl_msg
 #  mav_trajectory_generation mav_trajectory_generation_ros
 #  DEPENDS system_lib
 )
@@ -147,13 +147,20 @@ add_library(quad_pos_ctrl
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/quad_pos_ctrl_node.cpp)
 # main node
-add_executable(quad_pos_ctrl_node src/quad_pos_ctrl_node.cpp)
+add_executable(quad_pos_ctrl_node
+	src/quad_pos_ctrl_node.cpp)
+target_link_libraries(quad_pos_ctrl_node
+  	quad_pos_ctrl
+  	${catkin_LIBRARIES}
+	)
+add_dependencies(quad_pos_ctrl_node ctrl_msg_generate_messages_cpp dji_sdk_generate_messages_cpp)
+
 # test node
-add_executable(test_pub_node test/test_pub_node.cpp)
-add_executable(test_takeoff_node test/test_takeoff_node.cpp)
-add_executable(test_takeoff_node2 test/test_takeoff_node2.cpp)
-add_executable(test_takeoff_node3 test/test_takeoff_node3.cpp)
 add_executable(test_takeoff_node4 test/test_takeoff_node4.cpp)
+target_link_libraries(test_takeoff_node4
+	${catkin_LIBRARIES}
+)
+add_dependencies(test_takeoff_node4 ctrl_msg_generate_messages_cpp)
 #add_executable(test_sample_mocap test/test_sample_mocap.cpp)
 #add_executable(linear_optimal_test test/linear_optimal_test.cpp)
 #add_executable(nonlinear_optimal_test2 test/nonlinear_optimal_test2.cpp)
@@ -174,30 +181,27 @@ add_executable(test_takeoff_node4 test/test_takeoff_node4.cpp)
 #   ${catkin_LIBRARIES}
 # )
 
-target_link_libraries(quad_pos_ctrl_node
-  quad_pos_ctrl
-  ${catkin_LIBRARIES}
-)
 
-target_link_libraries(test_pub_node
-  ${catkin_LIBRARIES}
-)
 
-target_link_libraries(test_takeoff_node
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(test_pub_node
+#  ${catkin_LIBRARIES}
+#)
 
-target_link_libraries(test_takeoff_node2
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(test_takeoff_node
+#  ${catkin_LIBRARIES}
+#)
 
-target_link_libraries(test_takeoff_node3
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(test_takeoff_node2
+#  ${catkin_LIBRARIES}
+#)
 
-target_link_libraries(test_takeoff_node4
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(test_takeoff_node3
+#  ${catkin_LIBRARIES}
+#)
+
+#target_link_libraries(test_takeoff_node4
+#  ${catkin_LIBRARIES}
+#)
 
 #target_link_libraries(test_sample_mocap
   #quad_pos_ctrl
